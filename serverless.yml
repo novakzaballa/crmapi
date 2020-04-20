@@ -42,6 +42,8 @@ provider:
     USERS_TABLE: "${opt:stage, self:provider.stage}-UsersTable"
     AWS_REGION_CONF: "${opt:region, self:provider.region}"
     DYNAMODB_ENDPOINT: ${self:custom.endpoints.dynamodb-url}
+    OAUTH_AUDIENCE: ${file(./secrets.json):OAUTH_AUDIENCE}
+    OAUTH_CLIENT_PUBLIC_KEY: ${file(./oauth2_public_key.pem)}
 
   iamRoleStatements:
     - Effect: Allow
@@ -83,3 +85,24 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+  # Authorizer Responses        
+    GatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: EXPIRED_TOKEN
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401'
+    AuthFailureGatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: UNAUTHORIZED
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401'

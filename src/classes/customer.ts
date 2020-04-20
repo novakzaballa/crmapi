@@ -72,13 +72,13 @@ export class Customer {
   @IsString()
   @IsNotEmpty()
   @attribute()
-  CreateUser!: String;
+  CreatedBy!: String;
 
   @IsString()
   @IsISO8601()
   @IsNotEmpty()
   @attribute()
-  CreateDate?: String;
+  CreatedAt?: String;
 
   @IsString()
   @attribute()

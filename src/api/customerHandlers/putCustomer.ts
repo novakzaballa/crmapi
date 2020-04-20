@@ -1,15 +1,26 @@
 import { Customer } from "../../classes/customer";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import {
+  APIGatewayProxyResult,
+  APIGatewayProxyWithLambdaAuthorizerHandler,
+  Context,
+  APIGatewayProxyWithLambdaAuthorizerEvent,
+} from "aws-lambda";
 import "source-map-support/register";
 
+interface TAuthorizerContext extends Context {
+  principalId: String;
+}
+
 /**
- * 
- * @summary AWS Lambda Event handler to put a new or updated item into Customer DynamoDB table. 
- * @param event APIGatewayProxyEvent containing the HTTP headers and request payload (body)
- * 
+ * AWS Lambda Event handler to put a new or updated item into Customer DynamoDB
+ * table.
+ *
+ * @param event APIGatewayProxyEvent containing the HTTP headers and request
+ * payload (body)
  */
-export async function putCustomer(
-  event: APIGatewayProxyEvent
+
+export const putCustomer: APIGatewayProxyWithLambdaAuthorizerHandler<TAuthorizerContext> = async function (
+  event: APIGatewayProxyWithLambdaAuthorizerEvent<TAuthorizerContext>
 ): Promise<APIGatewayProxyResult> {
   const { body: eventBody } = event;
   const result: APIGatewayProxyResult = {
@@ -24,9 +35,8 @@ export async function putCustomer(
     Object.assign(customer, JSON.parse(eventBody));
     if (customer) {
       // Add auditing data
-      customer.CreateDate = new Date().toISOString();
-      customer.CreateUser = "HardcodedTestUser"; // TODO: call a getCurrentUser function
-
+      customer.CreatedAt = new Date().toISOString();
+      customer.CreatedBy = event.requestContext.authorizer.principalId; 
       // Validate against schema
       let valid: any = await customer.validateCustomer();
       if (valid === "OK") {
@@ -48,4 +58,4 @@ export async function putCustomer(
     });
     return result;
   }
-}
+};

@@ -4,7 +4,9 @@ authorName: 'Novak Zaballa'
 Date: 'Apr 16 2020'
 -->
 
-# CRM REST API code example - Scope: Customers (Novak Zaballa)
+# CRM REST API code example - Novak Zaballa
+
+The scope of this sample code project is users and customers management of a CRM.
 
 This project has been built with Serverless Framework and targeting AWS lambda with Node.js + DynamoDB. You can deploy the proyect to AWS installing and configuring serverless, or you can run the services locally, using the [serverless-offline](https://github.com/dherault/serverless-offline) plugin, which is included. The offline configuration also includes a local DynamoDB instance is provided by the [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local) plugin.
 
@@ -30,23 +32,37 @@ serverless offline start
 
 Alternatively you can debug the project with VS Code. This repository includes the launch.json file needed by VS Code to run and debug this serverless project locally. How ever dynamodb needs to be started.
 
-To deploy to AWS use:
+## Configure and Deploy service to AWS
+
+For production you will need to configure authetication the OAuth 2 provider. Replace the file oauth2_public_key.pem in the root directory with the right public signature PEM file. Also cnfigure the file secrets.json with the corresponding OAUTH_AUDIENCE value.
+
+To deploy the service you need an account in AWS. Use the following command:
 
 ```bash
 serverless deploy -v
 ```  
 
+### Authorization for testing
+
+Every request must include an authorization header containing the OAuth Bearer token. For testing purposes currently an Auth0 account is in use,  The request content type must be application/json as per the examples below. While in dev stage, I will provide valid access token of quarklap user (with only customer priveleges and not users admin permissions) via slack channel.
+
+### Live Demo
+
+You can test locally following the former instructions, however it is also a live test end point, published in my aws account, for the POST customers endpoint:
+
+POST - https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers
+
 ## Usage
 
-You can test locally the create, list, update, or delete customers endpoints of the CRM using postman or with the following curl commands: (currently only the put enpoint is implemented to add and modify customers). Every request must include an authorization header containing the OAuth Bearer token, currently in the initial stage use "Bearer ADFEV43F4345F" authorization header. The request conent type must be application/json.
-
-### Create a Customer (Validation partially implemented)
+You can test locally the create, list, update, or delete customers endpoints of the CRM using postman or curl commands using the following payload exmaples: (currently only is implemented the add and modify customers endpoint).
 
 <!--
 ```bash
 curl -X POST -H "Content-Type:application/json" http://localhost:3000/todos --data '{ "text": "Learn Serverless" }'
 
 -->
+
+### Create a Customer (Validation implemented)
 
 Example Succesfull Request Payload:
 
