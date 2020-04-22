@@ -19,6 +19,7 @@ import {
   attribute,
   hashKey,
   table,
+  rangeKey,
 } from "@aws/dynamodb-data-mapper-annotations";
 import { CUSTOMER_TABLE, AWS_REGION } from "../common/constants";
 import { DataMapper } from "@aws/dynamodb-data-mapper";
@@ -27,13 +28,15 @@ import { DynamoDB } from "aws-sdk";
 
 @table(CUSTOMER_TABLE)
 export class Customer {
+  // GroupId is the partition key. Here used to balance the db requests load, 
+  // however can be used in future upgrades to handle multitenancy.
   @hashKey()
   GroupId!: String;
 
   @IsString()
   @IsDefined()
   @IsNotEmpty()
-  @attribute()
+  @rangeKey()
   CustomerId!: String;
 
   @IsString()
@@ -78,18 +81,29 @@ export class Customer {
   @IsISO8601()
   @IsNotEmpty()
   @attribute()
-  CreatedAt?: String;
+  CreatedAt!: String;
 
   @IsString()
-  @attribute()
   @IsOptional()
+  @attribute()
+  UpdatedBy?: String;
+
+  @IsString()
+  @IsISO8601()
+  @IsOptional()
+  @attribute()
+  UpdatedAt?: String;
+
+  @IsString()
+  @IsOptional()
+  @attribute()
   PhotoURL?: String;
 
   /**
    * @abstract: Adds a new customer to Customers table.
    * GroupId(S), CustomerId(S), Name(S), Surname(S) Email(S) Age(N) and Phone(S) are required.
    */
-  async createCustomer(): Promise<Customer> {
+  async createOrUpdate(): Promise<Customer> {
     console.log("Table:", CUSTOMER_TABLE, " Region:", AWS_REGION);
     this.GroupId = this.CustomerId.slice(-1);
     const dynamo: DynamoDB = getDynamoCli();
@@ -98,12 +112,40 @@ export class Customer {
     return result;
   }
 
+  static async getOne(customerId): Promise<Customer> {
+    console.log("Table:", CUSTOMER_TABLE, " Region:", AWS_REGION);
+    if (!customerId) {
+      return null;
+    }
+    const groupId = customerId.slice(-1);
+    const dynamo: DynamoDB = getDynamoCli();
+    const mapper = new DataMapper({ client: dynamo });
+    const customer: Customer = Object.assign<Customer, any>(new Customer(), {
+      GroupId: groupId,
+      CustomerId: customerId,
+    });
+    const result = await mapper.get<Customer>(customer);
+    return result;
+  }
+
+  static async listAll(): Promise<Customer[]> {
+    console.log("Table:", CUSTOMER_TABLE, " Region:", AWS_REGION);
+    const dynamo: DynamoDB = getDynamoCli();
+    const mapper = new DataMapper({ client: dynamo });
+    const result = new Array();
+    for await (const item of mapper.scan<Customer>(Customer)) {
+      result.push(item);
+    }
+
+    return result;
+  }
+
   /**
    * @abstract validates the schema and request payload
    * @returns "OK" if validated otherwise returns errors object containing detailed validation info.
    */
 
-  async validateCustomer() {
+  async validateSchema() {
     try {
       await validateOrReject(this);
     } catch (errors) {

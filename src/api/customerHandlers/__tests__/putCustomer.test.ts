@@ -53,7 +53,7 @@ describe('putCustomer', () => {
       const responseCustomer:Customer = new Customer;
       Object.assign<Customer, any>(responseCustomer, JSON.parse((response as APIGatewayProxyResult).body));
       expect(statusCode).toBe(200);
-      expect(await responseCustomer.validateCustomer()).toBe("OK");
+      expect(await responseCustomer.validateSchema()).toBe("OK");
     });
   });
 

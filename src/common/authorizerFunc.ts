@@ -79,10 +79,10 @@ export const authorizerFunc: CustomAuthorizerHandler = (
           //                    policy.allowMethod(AuthPolicy.HttpVerb.POST, "api/customers*); ...
           policy.allowAllMethods(); 
         } else {
-          policy.allowMethod(AuthPolicy.HttpVerb.GET, "api/customers");
+          policy.allowMethod(AuthPolicy.HttpVerb.GET, "api/customers*");
           if (verifiedJwt.scope.indexOf("write:customers") > -1) {
-            policy.allowMethod(AuthPolicy.HttpVerb.PUT, "api/customers*");
-            policy.allowMethod(AuthPolicy.HttpVerb.POST, "api/customers*");
+            policy.allowMethod(AuthPolicy.HttpVerb.PUT, "api/customers/*");
+            policy.allowMethod(AuthPolicy.HttpVerb.POST, "api/customers");
           }
         }
         var authResponse: APIGatewayAuthorizerResult = policy.build();

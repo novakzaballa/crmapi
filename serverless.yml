@@ -54,6 +54,7 @@ provider:
         - dynamodb:PutItem
      # Resource: "*"
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.CUSTOMER_TABLE}"
+
 functions:
   putCustomer:
     handler: src/api/customerHandlers/putCustomer.putCustomer
@@ -62,6 +63,31 @@ functions:
           method: post
           path: api/customers
           authorizer: authorizerFunc
+
+  updateCustomer:
+    handler: src/api/customerHandlers/updateCustomer.updateCustomer
+    events:
+      - http:
+          method: put
+          path: api/customers/{id}
+          authorizer: authorizerFunc
+
+  getCustomer:
+    handler: src/api/customerHandlers/getCustomer.getCustomer
+    events:
+      - http:
+          method: get
+          path: api/customers/{id}
+          authorizer: authorizerFunc
+
+  listCustomers:
+    handler: src/api/customerHandlers/listCustomers.listCustomers
+    events:
+      - http:
+          method: get
+          path: api/customers
+          authorizer: authorizerFunc
+
   authorizerFunc:
     handler: src/common/authorizerFunc.authorizerFunc
 

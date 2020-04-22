@@ -48,10 +48,13 @@ Every request must include an authorization header containing the OAuth Bearer t
 
 ### Live Demo
 
-You can test locally following the former instructions, however it is also a live test end point, published in my aws account, for the POST customers endpoint:
+You can test locally following the former instructions, however it is also a live test with the following endpoints published in my aws account:
 
-POST - https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers
-
+  POST - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers>
+  PUT - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers/{id}>
+  GET - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers/{id}>
+  GET - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers>
+  
 ## Usage
 
 You can test locally the create, list, update, or delete customers endpoints of the CRM using postman or curl commands using the following payload exmaples: (currently only is implemented the add and modify customers endpoint).

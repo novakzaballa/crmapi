@@ -2,12 +2,11 @@ import { Customer } from "../../classes/customer";
 import {
   APIGatewayProxyResult,
   APIGatewayProxyWithLambdaAuthorizerHandler,
-  Context,
   APIGatewayProxyWithLambdaAuthorizerEvent,
 } from "aws-lambda";
 import "source-map-support/register";
 
-interface TAuthorizerContext extends Context {
+interface TAuthorizerContext {
   principalId: String;
 }
 
@@ -15,8 +14,9 @@ interface TAuthorizerContext extends Context {
  * AWS Lambda Event handler to put a new or updated item into Customer DynamoDB
  * table.
  *
- * @param event APIGatewayProxyEvent containing the HTTP headers and request
- * payload (body)
+ * @param event APIGatewayProxyWithLambdaAuthorizerEvent<TAuthorizerContext>
+ * containing the HTTP headers and request payload (body) and the principalId
+ * or userid parsed by the authorizer and stored in the TAuthorizerContext
  */
 
 export const putCustomer: APIGatewayProxyWithLambdaAuthorizerHandler<TAuthorizerContext> = async function (
@@ -36,13 +36,13 @@ export const putCustomer: APIGatewayProxyWithLambdaAuthorizerHandler<TAuthorizer
     if (customer) {
       // Add auditing data
       customer.CreatedAt = new Date().toISOString();
-      customer.CreatedBy = event.requestContext.authorizer.principalId; 
+      customer.CreatedBy = event.requestContext.authorizer.principalId;
       // Validate against schema
-      let valid: any = await customer.validateCustomer();
+      const valid: any = await customer.validateSchema();
       if (valid === "OK") {
-        const customerData: Customer = await customer.createCustomer();
+        const customerData: Customer = await customer.createOrUpdate();
         result.body = JSON.stringify(customerData);
-        result.statusCode = 200;
+        result.statusCode = 201;
         return result;
       } else {
         result.body = JSON.stringify(valid);
