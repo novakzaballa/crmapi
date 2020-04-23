@@ -29,9 +29,9 @@ export const authorizerFunc: CustomAuthorizerHandler = (
   context: Context,
   callback: Callback<APIGatewayAuthorizerResult>
 ) => {
-  console.log("event", event);
+  //console.log("event", event); Enable for debugging only if really needed
   if (!event.authorizationToken) {
-    context.fail("No authorization token found in request header.");
+    return callback(new Error('No authorization token found in request header.'));
   }
 
   const tokenParts = event.authorizationToken.split(" ");
@@ -82,7 +82,7 @@ export const authorizerFunc: CustomAuthorizerHandler = (
           policy.allowMethod(AuthPolicy.HttpVerb.GET, "api/customers*");
           if (verifiedJwt.scope.indexOf("write:customers") > -1) {
             policy.allowMethod(AuthPolicy.HttpVerb.PUT, "api/customers/*");
-            policy.allowMethod(AuthPolicy.HttpVerb.POST, "api/customers");
+            policy.allowMethod(AuthPolicy.HttpVerb.POST, "api/customers*");
           }
         }
         var authResponse: APIGatewayAuthorizerResult = policy.build();

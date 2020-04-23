@@ -11,14 +11,14 @@ interface TAuthorizerContext {
 }
 
 /**
- * AWS Lambda Event handler to update an existing customer in DynamoDB
+ * AWS Lambda Event handler to add a photo in S3 to an existing Customer
  *
  * @param event APIGatewayProxyWithLambdaAuthorizerEvent<TAuthorizerContext>
- * containing the HTTP headers and request payload (body) and the principalId
- * or userid parsed by the authorizer and stored in the TAuthorizerContext
+ * containing the HTTP headers and photo data (Base64 encoded) in the request 
+ * body and userid parsed by the authorizer in the TAuthorizerContext.
  */
 
-export const updateCustomer: APIGatewayProxyWithLambdaAuthorizerHandler<TAuthorizerContext> = async function (
+export const addCustomerPhoto: APIGatewayProxyWithLambdaAuthorizerHandler<TAuthorizerContext> = async function (
   event: APIGatewayProxyWithLambdaAuthorizerEvent<TAuthorizerContext>
 ): Promise<APIGatewayProxyResult> {
   const result: APIGatewayProxyResult = {
@@ -43,29 +43,17 @@ export const updateCustomer: APIGatewayProxyWithLambdaAuthorizerHandler<TAuthori
   try {
     const customer: Customer = await Customer.getOne(customerId);
     if (customer) {
-      // If found try to update the item
+      // If found try to update the customer photo with the data uploaded
       try {
-        let groupId = customer.GroupId;
-        Object.assign(customer, JSON.parse(eventBody));
-        if (customer.CustomerId !== customerId || customer.GroupId !== groupId){
-          result.statusCode = 400;
-          result.body = JSON.stringify({"Err":"GroupId and CustomerId can not be modified."});
-          return result;
-        }
-        // Add auditing data
         customer.UpdatedAt = new Date().toISOString();
         customer.UpdatedBy = event.requestContext.authorizer.principalId;
+        customer.PhotoURL = (event.headers.Host.indexOf('localhost') > -1 ? "http://" : "https://") + event.headers.Host + event.path;
+        const customerData = (await customer.addPhoto(eventBody)).PhotoURL;
+        console.log(customerData);
+        // Add auditing data
         // Validate against schema
-        let validateMsg: any = await customer.validateSchema();
-        if (validateMsg === "OK") {
-          const customerData: Customer = await customer.createOrUpdate();
-          result.body = JSON.stringify(customerData);
-          result.statusCode = 202;
-          return result;
-        } else {
-          result.statusCode = 400;
-          result.body = JSON.stringify(validateMsg);
-        }
+        result.body = JSON.stringify(customerData);
+        result.statusCode = 201;
         return result;
       } catch (err) {
         result.statusCode = 500;

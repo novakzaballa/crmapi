@@ -39,11 +39,12 @@ provider:
   environment:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
     CUSTOMER_TABLE: "${opt:stage, self:provider.stage}-CustomersTable"
-    USERS_TABLE: "${opt:stage, self:provider.stage}-UsersTable"
+#   USERS_TABLE: "${opt:stage, self:provider.stage}-UsersTable"
     AWS_REGION_CONF: "${opt:region, self:provider.region}"
     DYNAMODB_ENDPOINT: ${self:custom.endpoints.dynamodb-url}
     OAUTH_AUDIENCE: ${file(./secrets.json):OAUTH_AUDIENCE}
     OAUTH_CLIENT_PUBLIC_KEY: ${file(./oauth2_public_key.pem)}
+    S3_BUCKET_NAME: "${opt:stage, self:provider.stage}-crmapi-photo-bucket"
 
   iamRoleStatements:
     - Effect: Allow
@@ -52,8 +53,9 @@ provider:
         - dynamodb:Scan
         - dynamodb:GetItem
         - dynamodb:PutItem
-     # Resource: "*"
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.CUSTOMER_TABLE}"
+        - s3:*
+      Resource: "*"
+      #Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.CUSTOMER_TABLE}"
 
 functions:
   putCustomer:
@@ -88,11 +90,24 @@ functions:
           path: api/customers
           authorizer: authorizerFunc
 
+  addCustomerPhoto:
+    handler: src/api/customerHandlers/addCustomerPhoto.addCustomerPhoto
+    events:
+      - http:
+          method: put
+          path: api/customers/{id}/photo
+          authorizer: authorizerFunc
+
   authorizerFunc:
     handler: src/common/authorizerFunc.authorizerFunc
 
 resources:
   Resources:
+    S3PhotosBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.S3_BUCKET_NAME}
+
     Customers:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain

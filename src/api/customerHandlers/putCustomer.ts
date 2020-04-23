@@ -6,7 +6,7 @@ import {
 } from "aws-lambda";
 import "source-map-support/register";
 
-interface TAuthorizerContext {
+export interface TAuthorizerContext {
   principalId: String;
 }
 

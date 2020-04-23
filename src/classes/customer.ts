@@ -21,14 +21,19 @@ import {
   table,
   rangeKey,
 } from "@aws/dynamodb-data-mapper-annotations";
-import { CUSTOMER_TABLE, AWS_REGION } from "../common/constants";
+import {
+  CUSTOMER_TABLE,
+  AWS_REGION,
+  S3_BUCKET_NAME,
+} from "../common/constants";
 import { DataMapper } from "@aws/dynamodb-data-mapper";
 import { getDynamoCli } from "../common/dbConnection";
-import { DynamoDB } from "aws-sdk";
+import { DynamoDB, S3 } from "aws-sdk";
+import { Base64EncodedString } from "aws-sdk/clients/elastictranscoder";
 
 @table(CUSTOMER_TABLE)
 export class Customer {
-  // GroupId is the partition key. Here used to balance the db requests load, 
+  // GroupId is the partition key. Here used to balance the db requests load,
   // however can be used in future upgrades to handle multitenancy.
   @hashKey()
   GroupId!: String;
@@ -104,7 +109,12 @@ export class Customer {
    * GroupId(S), CustomerId(S), Name(S), Surname(S) Email(S) Age(N) and Phone(S) are required.
    */
   async createOrUpdate(): Promise<Customer> {
-    console.log("Table:", CUSTOMER_TABLE, " Region:", AWS_REGION);
+    console.log(
+      "Customer.createOrUpdate Table:",
+      CUSTOMER_TABLE,
+      " Region:",
+      AWS_REGION
+    );
     this.GroupId = this.CustomerId.slice(-1);
     const dynamo: DynamoDB = getDynamoCli();
     const mapper = new DataMapper({ client: dynamo });
@@ -112,8 +122,60 @@ export class Customer {
     return result;
   }
 
-  static async getOne(customerId): Promise<Customer> {
-    console.log("Table:", CUSTOMER_TABLE, " Region:", AWS_REGION);
+  /**
+   * Add photo to an existing customer
+   * @param photoData
+   */
+  async addPhoto(photoData: Base64EncodedString): Promise<Customer> {
+    console.log(
+      "Customer.addPhoto ",
+      "Table:",
+      CUSTOMER_TABLE,
+      " Region:",
+      AWS_REGION
+    );
+    let s3 = new S3();
+    let buffer = Buffer.from(photoData, "base64");
+    const fileExtension = "jpg"; // TODO: get file extension from file if possible otherwise return with error
+    const fileName: string = `${this.CustomerId}_photo.${fileExtension}`;
+    const request = await s3
+      .putObject({
+        Body: buffer,
+        Bucket: S3_BUCKET_NAME,
+        Key: fileName,
+        ContentDisposition: `attachment; filename=${fileName}`,
+        ContentEncoding: "image/jpeg",
+      })
+      .promise();
+    if (
+      !request ||
+      request.$response.error ||
+      request.$response.httpResponse.statusCode != 200
+    ) {
+      throw Error(
+        "CRMAPI ERROR: there was an error writing the file. " +
+          request.$response.error
+      );
+    }
+    const dynamo: DynamoDB = getDynamoCli();
+    const mapper = new DataMapper({ client: dynamo });
+    const result : Customer = await mapper.put<Customer>({ item: this });
+    return result;
+  }
+
+  /**
+   * Get one customer from DynamoDB
+   *
+   * @param customerId
+   */
+  static async getOne(customerId: String): Promise<Customer> {
+    console.log(
+      "Customer.getOne",
+      "Table:",
+      CUSTOMER_TABLE,
+      " Region:",
+      AWS_REGION
+    );
     if (!customerId) {
       return null;
     }
@@ -128,8 +190,16 @@ export class Customer {
     return result;
   }
 
+  /**
+   * List all customers from DynamoDB
+   */
   static async listAll(): Promise<Customer[]> {
-    console.log("Table:", CUSTOMER_TABLE, " Region:", AWS_REGION);
+    console.log(
+      "Customer.listAll Table:",
+      CUSTOMER_TABLE,
+      " Region:",
+      AWS_REGION
+    );
     const dynamo: DynamoDB = getDynamoCli();
     const mapper = new DataMapper({ client: dynamo });
     const result = new Array();
