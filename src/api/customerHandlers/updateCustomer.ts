@@ -1,4 +1,4 @@
-import { Customer } from "../../classes/customer";
+import { Customer } from "../../classes/Customer";
 import {
   APIGatewayProxyResult,
   APIGatewayProxyWithLambdaAuthorizerHandler,

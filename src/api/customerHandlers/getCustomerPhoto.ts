@@ -1,20 +1,18 @@
 import { Customer } from "../../classes/Customer";
 import {
   APIGatewayProxyResult,
-  APIGatewayProxyEvent,
   APIGatewayProxyHandler,
+  APIGatewayProxyEvent,
 } from "aws-lambda";
 import "source-map-support/register";
 
 /**
- * AWS Lambda Event handler to get one Customer from DynamoDB table.
+ * AWS Lambda Event handler to add a photo in S3 to an existing Customer
  *
- * @param event APIGatewayProxyWithLambdaAuthorizerEvent<TAuthorizerContext>
- * containing the HTTP headers and request payload (body) and the principalId
- * or userid parsed by the authorizer and stored in the TAuthorizerContext
+ * @param event APIGatewayProxyEvent
  */
 
-export const getCustomer: APIGatewayProxyHandler = async function (
+export const getCustomerPhoto: APIGatewayProxyHandler = async function (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const result: APIGatewayProxyResult = {
@@ -31,12 +29,18 @@ export const getCustomer: APIGatewayProxyHandler = async function (
   } else {
     customerId = `${event.pathParameters.id}`;
   }
+  // try get the customer with the corresponding id
   try {
-    const customerData: Customer = await Customer.getOne(customerId);
-    let valid: any = await customerData.validateSchema();
-    if (valid === "OK") {
+    const customer: Customer = await Customer.getOne(customerId);
+    if (customer) {
+      // If found try to get the customer photo if exists
+      const response = await customer.getPhoto();
+      //console.log(response);
       result.statusCode = 200;
-      result.body = JSON.stringify(customerData);
+      result.headers = {'Content-Type': 'image/jpeg'};
+      result.body = response;
+      result.isBase64Encoded = true;
+      return result;
     }
   } catch (err) {
     if (err.name === "ItemNotFoundException") {
@@ -50,6 +54,6 @@ export const getCustomer: APIGatewayProxyHandler = async function (
       err,
       event,
     });
+    return result;
   }
-  return result;
 };

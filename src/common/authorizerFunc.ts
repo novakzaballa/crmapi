@@ -72,18 +72,15 @@ export const authorizerFunc: CustomAuthorizerHandler = (
           apiOptions
         );
 
-        if (verifiedJwt.scope.indexOf("admins") > -1 || verifiedJwt.scope.indexOf("users:write") > -1) {
-          // Alternatively use: policy.allowMethod(AuthPolicy.HttpVerb.PUT, "api/users*);
-          //                    policy.allowMethod(AuthPolicy.HttpVerb.POST, "api/users*);
-          //                    policy.allowMethod(AuthPolicy.HttpVerb.GET, "api/users*);
-          //                    policy.allowMethod(AuthPolicy.HttpVerb.POST, "api/customers*); ...
+        if (verifiedJwt.scope && (verifiedJwt.scope.indexOf("admin") > -1 || verifiedJwt.scope.indexOf("users:write") > -1)) {
           policy.allowAllMethods(); 
         } else {
+          //policy.allowMethod(AuthPolicy.HttpVerb.GET, "api/users*"); // Enable for testing
           policy.allowMethod(AuthPolicy.HttpVerb.GET, "api/customers*");
-          if (verifiedJwt.scope.indexOf("write:customers") > -1) {
+          //if (verifiedJwt.scope && verifiedJwt.scope.indexOf("write:customers") > -1) { // Enable to have more control
             policy.allowMethod(AuthPolicy.HttpVerb.PUT, "api/customers/*");
             policy.allowMethod(AuthPolicy.HttpVerb.POST, "api/customers*");
-          }
+          //}
         }
         var authResponse: APIGatewayAuthorizerResult = policy.build();
         authResponse.context = {

@@ -1,5 +1,6 @@
 import { IS_OFFLINE, DYNAMODB_ENDPOINT, AWS_REGION } from './constants';
 import { DynamoDB } from 'aws-sdk'
+import { DataMapper } from "@aws/dynamodb-data-mapper";
 
 export function getDynamoCli() : DynamoDB {
     let dynamoDb: DynamoDB;
@@ -12,4 +13,8 @@ export function getDynamoCli() : DynamoDB {
         dynamoDb = new DynamoDB({region: AWS_REGION});
       }
       return dynamoDb;
+}
+export function getDataMapper(){
+  const dynamo: DynamoDB = getDynamoCli();
+  return new DataMapper({ client: dynamo });  
 }

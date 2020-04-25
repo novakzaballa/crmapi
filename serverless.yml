@@ -43,6 +43,9 @@ provider:
     AWS_REGION_CONF: "${opt:region, self:provider.region}"
     DYNAMODB_ENDPOINT: ${self:custom.endpoints.dynamodb-url}
     OAUTH_AUDIENCE: ${file(./secrets.json):OAUTH_AUDIENCE}
+    OAUTH_CLIENT_ID: ${file(./secrets.json):OAUTH_CLIENT_ID}
+    OAUTH_DOMAIN: ${file(./secrets.json):OAUTH_DOMAIN}
+    OAUTH_CLIENT_SECRET: ${file(./secrets.json):OAUTH_CLIENT_SECRET}
     OAUTH_CLIENT_PUBLIC_KEY: ${file(./oauth2_public_key.pem)}
     S3_BUCKET_NAME: "${opt:stage, self:provider.stage}-crmapi-photo-bucket"
 
@@ -97,6 +100,45 @@ functions:
           method: put
           path: api/customers/{id}/photo
           authorizer: authorizerFunc
+
+  getCustomerPhoto:
+    handler: src/api/customerHandlers/getCustomerPhoto.getCustomerPhoto
+    events:
+      - http:
+          method: get
+          path: api/customers/{id}/photo
+#         authorizer: authorizerFunc
+
+  listUsers:
+    handler: src/api/userHandlers/listUsers.listUsers
+    events:
+      - http:
+          method: get
+          path: api/users
+          authorizer: authorizerFunc
+    
+  createUser:
+    handler: src/api/userHandlers/createUser.createUser
+    events:
+      - http:
+          method: post
+          path: api/users
+          authorizer: authorizerFunc
+
+  setUserRole:
+    handler: src/api/userHandlers/setUserRole.setUserRole
+    events:
+      - http:
+          method: post
+          path: api/users/role
+          authorizer: authorizerFunc
+
+  authenticateUser:
+    handler: src/api/userHandlers/authenticateUser.authenticateUser
+    events:
+      - http:
+          method: post
+          path: api/authorize
 
   authorizerFunc:
     handler: src/common/authorizerFunc.authorizerFunc

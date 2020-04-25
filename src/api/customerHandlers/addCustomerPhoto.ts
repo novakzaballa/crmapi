@@ -1,4 +1,4 @@
-import { Customer } from "../../classes/customer";
+import { Customer } from "../../classes/Customer";
 import {
   APIGatewayProxyResult,
   APIGatewayProxyWithLambdaAuthorizerHandler,
@@ -14,7 +14,7 @@ interface TAuthorizerContext {
  * AWS Lambda Event handler to add a photo in S3 to an existing Customer
  *
  * @param event APIGatewayProxyWithLambdaAuthorizerEvent<TAuthorizerContext>
- * containing the HTTP headers and photo data (Base64 encoded) in the request 
+ * containing the HTTP headers and photo data (Base64 encoded) in the request
  * body and userid parsed by the authorizer in the TAuthorizerContext.
  */
 
@@ -45,10 +45,21 @@ export const addCustomerPhoto: APIGatewayProxyWithLambdaAuthorizerHandler<TAutho
     if (customer) {
       // If found try to update the customer photo with the data uploaded
       try {
-        customer.UpdatedAt = new Date().toISOString();
-        customer.UpdatedBy = event.requestContext.authorizer.principalId;
-        customer.PhotoURL = (event.headers.Host.indexOf('localhost') > -1 ? "http://" : "https://") + event.headers.Host + event.path;
-        const customerData = (await customer.addPhoto(eventBody)).PhotoURL;
+        const photoURL =
+          (event.headers.Host.indexOf("localhost") > -1
+            ? "http://"
+            : "https://") +
+          event.headers.Host +
+          "/" +
+          event.requestContext.stage +
+          event.path;
+        const customerData = (
+          await customer.addPhoto(
+            eventBody,
+            event.requestContext.authorizer.principalId,
+            photoURL
+          )
+        ).PhotoURL;
         console.log(customerData);
         // Add auditing data
         // Validate against schema

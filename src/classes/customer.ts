@@ -2,6 +2,7 @@
  * Customer Class
  * Apr 14 2020
  */
+import { ScanOptions } from "@aws/dynamodb-data-mapper";
 
 import {
   validateOrReject,
@@ -26,9 +27,8 @@ import {
   AWS_REGION,
   S3_BUCKET_NAME,
 } from "../common/constants";
-import { DataMapper } from "@aws/dynamodb-data-mapper";
-import { getDynamoCli } from "../common/dbConnection";
-import { DynamoDB, S3 } from "aws-sdk";
+import { getDataMapper } from "../common/dbConnection";
+import { S3 } from "aws-sdk";
 import { Base64EncodedString } from "aws-sdk/clients/elastictranscoder";
 
 @table(CUSTOMER_TABLE)
@@ -116,8 +116,7 @@ export class Customer {
       AWS_REGION
     );
     this.GroupId = this.CustomerId.slice(-1);
-    const dynamo: DynamoDB = getDynamoCli();
-    const mapper = new DataMapper({ client: dynamo });
+    const mapper = getDataMapper();
     const result = await mapper.put<Customer>({ item: this });
     return result;
   }
@@ -126,7 +125,11 @@ export class Customer {
    * Add photo to an existing customer
    * @param photoData
    */
-  async addPhoto(photoData: Base64EncodedString): Promise<Customer> {
+  async addPhoto(
+    photoData: Base64EncodedString,
+    principalId: string,
+    photoURL: string
+  ): Promise<Customer> {
     console.log(
       "Customer.addPhoto ",
       "Table:",
@@ -143,7 +146,7 @@ export class Customer {
         Body: buffer,
         Bucket: S3_BUCKET_NAME,
         Key: fileName,
-        ContentDisposition: `attachment; filename=${fileName}`,
+        ContentDisposition: `inline; filename=${fileName}`, // attachment; to force download
         ContentEncoding: "image/jpeg",
       })
       .promise();
@@ -157,10 +160,40 @@ export class Customer {
           request.$response.error
       );
     }
-    const dynamo: DynamoDB = getDynamoCli();
-    const mapper = new DataMapper({ client: dynamo });
-    const result : Customer = await mapper.put<Customer>({ item: this });
+
+    this.UpdatedAt = new Date().toISOString();
+    this.UpdatedBy = principalId;
+    this.PhotoURL = photoURL;
+
+    const mapper = getDataMapper();
+    const result: Customer = await mapper.put<Customer>({ item: this });
     return result;
+  }
+
+  /**
+   * Get photo of an existing customer
+   */
+  async getPhoto(): Promise<string> {
+    let s3 = new S3();
+    const fileExtension = "jpg";
+    const fileName: string = `${this.CustomerId}_photo.${fileExtension}`;
+    // Alternatively provide a temporary URL to download directly from S3
+    // const url = await s3.getSignedUrlPromise("getObject", { Bucket: S3_BUCKET_NAME, Key: fileName, Expires: 600 });
+    // console.log(url);
+    const response = await s3
+      .getObject({ Bucket: S3_BUCKET_NAME, Key: fileName })
+      .promise();
+    if (
+      !response ||
+      response.$response.error ||
+      response.$response.httpResponse.statusCode != 200
+    ) {
+      throw Error(
+        "CRMAPI ERROR: there was an error getting customer photo. " +
+          response.$response.error
+      );
+    }
+    return response.$response.httpResponse.body.toString("base64");
   }
 
   /**
@@ -180,29 +213,56 @@ export class Customer {
       return null;
     }
     const groupId = customerId.slice(-1);
-    const dynamo: DynamoDB = getDynamoCli();
-    const mapper = new DataMapper({ client: dynamo });
     const customer: Customer = Object.assign<Customer, any>(new Customer(), {
       GroupId: groupId,
       CustomerId: customerId,
     });
+    const mapper = getDataMapper();
     const result = await mapper.get<Customer>(customer);
     return result;
   }
-
+  
   /**
    * List all customers from DynamoDB
    */
-  static async listAll(): Promise<Customer[]> {
+  static async listAll(pageSize: number, startKey: any = null/*{ [key: string]: any; }*/): Promise<any> {
     console.log(
       "Customer.listAll Table:",
       CUSTOMER_TABLE,
       " Region:",
       AWS_REGION
     );
-    const dynamo: DynamoDB = getDynamoCli();
-    const mapper = new DataMapper({ client: dynamo });
+    
+    const options: ScanOptions = {
+      pageSize: pageSize,
+      startKey: startKey? {GroupId: startKey.slice(-1), CustomerId: startKey} : null,
+  //    limit: pageSize
+    }
+    let customers: Customer[] = [];
+    const mapper = getDataMapper();
+    const pages = mapper.scan(Customer, options).pages();
+    for await (const item of pages) {
+      customers = [...item];
+      break;
+    }
+      const result = {
+      lastEvaluatedKey: pages.lastEvaluatedKey?.CustomerId, 
+      count: pages.count, 
+      scannedCount: pages.scannedCount,
+      items: customers
+    }
+    return result;
+  }
+
+  static async listAll2(): Promise<Customer[]> {
+    console.log(
+      "Customer.listAll Table:",
+      CUSTOMER_TABLE,
+      " Region:",
+      AWS_REGION
+    );
     const result = new Array();
+    const mapper = getDataMapper();
     for await (const item of mapper.scan<Customer>(Customer)) {
       result.push(item);
     }

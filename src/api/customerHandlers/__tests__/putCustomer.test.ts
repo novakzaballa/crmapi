@@ -5,7 +5,7 @@ import {
   APIGatewayEventRequestContextWithAuthorizer,
   APIGatewayEventLambdaAuthorizerContext,
 } from "aws-lambda";
-import { Customer } from "../../../classes/customer";
+import { Customer } from "../../../classes/Customer";
 import * as jestPlugin from "serverless-jest-plugin";
 import { putCustomer, TAuthorizerContext } from "../putCustomer";
 
@@ -21,19 +21,20 @@ describe("putCustomer", () => {
     done();
   });
   let mockReqContext: APIGatewayEventRequestContextWithAuthorizer<APIGatewayEventLambdaAuthorizerContext<
-    TAuthorizerContext>> = {
+    TAuthorizerContext
+  >> = {
     authorizer: { principalId: "JestTestingUser", integrationLatency: 1 },
     accountId: null,
     apiId: null,
     protocol: null,
     httpMethod: null,
-    identity:null,
-    path:null,
-    stage:null,
-    requestId:null,
+    identity: null,
+    path: null,
+    stage: null,
+    requestId: null,
     requestTimeEpoch: null,
     resourceId: null,
-    resourcePath: null
+    resourcePath: null,
   };
   let mockEvent: APIGatewayProxyWithLambdaAuthorizerEvent<TAuthorizerContext> = {
     httpMethod: "POST",
@@ -48,16 +49,18 @@ describe("putCustomer", () => {
     //event.requestContext.authorizer.principalId
     requestContext: mockReqContext,
     resource: null,
-    body: null
+    body: null,
   };
 
-  const event1: APIGatewayProxyWithLambdaAuthorizerEvent<TAuthorizerContext> = Object.create(mockEvent);
+  const event1: APIGatewayProxyWithLambdaAuthorizerEvent<TAuthorizerContext> = Object.create(
+    mockEvent
+  );
   event1.body = `\{"CustomerId":"4532324",
       "Name":"Paul Ray",
       "Surname":"Ghost",
       "Phone":"(122)23878 343",
       "Email":"pghost@midominio.com",
-      "Age":2}`
+      "Age":2}`;
 
   it("Integration: Throws Bad Request (Status 400) when Age < 16", () => {
     return wrapped
@@ -77,7 +80,9 @@ describe("putCustomer", () => {
       });
   });
 
-  const event2: APIGatewayProxyWithLambdaAuthorizerEvent<TAuthorizerContext> = Object.create(mockEvent);
+  const event2: APIGatewayProxyWithLambdaAuthorizerEvent<TAuthorizerContext> = Object.create(
+    mockEvent
+  );
   event2.body = `\{"CustomerId":"4532324",
   "Name":"Paul Ray",
   "Surname":"Ghost",
@@ -87,41 +92,29 @@ describe("putCustomer", () => {
   console.log("event2:", event2);
 
   it("Integration: Adds a well formed customer with status 200", () => {
-    return wrapped
-      .run(
-        event2
-      )
-      .then(async (response) => {
-        const statusCode: number = (response as APIGatewayProxyResult)
-          .statusCode;
-        const responseCustomer: Customer = new Customer();
-        Object.assign<Customer, any>(
-          responseCustomer,
-          JSON.parse((response as APIGatewayProxyResult).body)
-        );
-        expect(statusCode).toBe(201);
-        expect(await responseCustomer.validateSchema()).toBe("OK");
-      });
+    return wrapped.run(event2).then(async (response) => {
+      const statusCode: number = (response as APIGatewayProxyResult).statusCode;
+      const responseCustomer: Customer = new Customer();
+      Object.assign<Customer, any>(
+        responseCustomer,
+        JSON.parse((response as APIGatewayProxyResult).body)
+      );
+      expect(statusCode).toBe(201);
+      expect(await responseCustomer.validateSchema()).toBe("OK");
+    });
   });
 
   it("Integration: Adds a well formed customer with status 200", () => {
-    process.env.IS_OFFLINE = "false"
-    return wrapped
-      .run(
-        event2
-      )
-      .then(async (response) => {
-        const statusCode: number = (response as APIGatewayProxyResult)
-          .statusCode;
-        const responseCustomer: Customer = new Customer();
-        Object.assign<Customer, any>(
-          responseCustomer,
-          JSON.parse((response as APIGatewayProxyResult).body)
-        );
-        expect(statusCode).toBe(201);
-        expect(await responseCustomer.validateSchema()).toBe("OK");
-      });
+    process.env.IS_OFFLINE = "false";
+    return wrapped.run(event2).then(async (response) => {
+      const statusCode: number = (response as APIGatewayProxyResult).statusCode;
+      const responseCustomer: Customer = new Customer();
+      Object.assign<Customer, any>(
+        responseCustomer,
+        JSON.parse((response as APIGatewayProxyResult).body)
+      );
+      expect(statusCode).toBe(201);
+      expect(await responseCustomer.validateSchema()).toBe("OK");
+    });
   });
-
 });
-

@@ -1,4 +1,4 @@
-import { Customer } from "../../../classes/customer";
+import { Customer } from "../../../classes/Customer";
 import { DataMapper } from "@aws/dynamodb-data-mapper";
 jest.mock("@aws/dynamodb-data-mapper");
 
