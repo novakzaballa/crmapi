@@ -52,30 +52,30 @@ You can test locally following the former instructions, however it is also a liv
 
 #### Authenticate User Credentials And get Access Token
 
-  POST - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/authorize>
+- POST - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/authorize>
 
-  Email address and password for testing purposes will be shared through email or slack.
+Email address and password for testing purposes will be shared through email or slack.
 
 #### User Management
 
-  GET - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/users>
-  POST - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/users>
-  POST - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/users/role>
+- GET - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/users>
+- POST - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/users>
+- POST - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/users/role>
 
 #### Customer Management
 
-  POST - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers>
-  PUT - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers/{id}>
-  GET - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers/{id}>
-  GET - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers>
-  PUT - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers/{id}/photo>
-  GET - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers/{id}/photo>
-  
+- POST - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers>
+- PUT - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers/{id}>
+- GET - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers/{id}>
+- GET - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers>
+- PUT - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers/{id}/photo>
+- GET - <https://mspjeecyw1.execute-api.us-east-1.amazonaws.com/dev/api/customers/{id}/photo>
+
 ### Live Testing with Swagger UI
 
 [Click here to see API documentation and test iit n Swagger UI](https://app.swaggerhub.com/apis-docs/novakzaballa/crm-api_v_1_0_0/1.0)
 
-## Usage
+## Usage Examples
 
 You can test locally the create, list, update, or delete customers endpoints of the CRM using postman or curl commands using the following payload exmaples: (currently only is implemented the add and modify customers endpoint).
 
