@@ -7,7 +7,7 @@ import {
 import { CrmUser } from "../../classes/CrmUser";
 
 /**
- * AWS Lambda Event handler to list users from IDP (Auth0)
+ * AWS Lambda Event handler to set the role of a user in IDP (Auth0)
  *
  * @param event
  */

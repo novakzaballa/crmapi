@@ -9,3 +9,14 @@ coverage
 
 # Webpack directories
 .webpack
+coverage/clover.xml
+coverage/coverage-final.json
+coverage/lcov.info
+coverage/lcov-report/index.html
+coverage/lcov-report/api/customerHandlers/index.html
+coverage/lcov-report/api/customerHandlers/putCustomer.ts.html
+coverage/lcov-report/classes/customer.ts.html
+coverage/lcov-report/classes/index.html
+coverage/lcov-report/common/constants.ts.html
+coverage/lcov-report/common/dbConnection.ts.html
+coverage/lcov-report/common/index.html

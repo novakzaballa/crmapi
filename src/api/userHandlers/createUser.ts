@@ -8,7 +8,7 @@ import { CrmUser } from "../../classes/CrmUser";
 import { passPolicyEnforce } from "../../common/auth0Helper";
 
 /**
- * AWS Lambda Event handler to list users from IDP (Auth0)
+ * AWS Lambda Event handler to create a user in the IDP (Auth0)
  *
  * @param event
  */

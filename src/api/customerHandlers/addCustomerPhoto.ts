@@ -39,47 +39,40 @@ export const addCustomerPhoto: APIGatewayProxyWithLambdaAuthorizerHandler<TAutho
   } else {
     customerId = `${event.pathParameters.id}`;
   }
-  // try get the item to be updated
   try {
+    // Get the customer to be updated
     const customer: Customer = await Customer.getOne(customerId);
     if (customer) {
       // If found try to update the customer photo with the data uploaded
-      try {
-        const photoURL =
-          (event.headers.Host.indexOf("localhost") > -1
-            ? "http://"
-            : "https://") +
-          event.headers.Host +
-          "/" +
-          event.requestContext.stage +
-          event.path;
-        const customerData = (
-          await customer.addPhoto(
-            eventBody,
-            event.requestContext.authorizer.principalId,
-            photoURL
-          )
-        ).PhotoURL;
-        console.log(customerData);
-        // Add auditing data
-        // Validate against schema
-        result.body = JSON.stringify(customerData);
-        result.statusCode = 201;
-        return result;
-      } catch (err) {
-        result.statusCode = 500;
-        result.body = JSON.stringify(err);
-        console.log("create Error", {
-          err,
-          event,
-        });
-        return result;
-      }
+      const photoURL =
+        (event.headers.Host.indexOf("localhost") > -1
+          ? "http://"
+          : "https://") +
+        event.headers.Host +
+        "/" +
+        event.requestContext.stage +
+        event.path;
+      const customerData = (
+        await customer.addPhoto(
+          eventBody,
+          event.requestContext.authorizer.principalId,
+          photoURL
+        )
+      ).PhotoURL;
+      //console.log(customerData);
+      result.body = JSON.stringify(customerData);
+      result.statusCode = 201;
+      return result;
+    } else {
+      throw "ItemNotFoundException";
     }
   } catch (err) {
     if (err.name === "ItemNotFoundException") {
       result.statusCode = 404;
       result.body = JSON.stringify({});
+    } else if (["FILE_SIZE_ERROR", "INVALID_MIME_TYPE"].includes(err)) {
+      result.statusCode = 400;
+      result.body = JSON.stringify(err);
     } else {
       result.statusCode = 500;
       result.body = JSON.stringify(err);

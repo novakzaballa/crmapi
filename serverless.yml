@@ -47,6 +47,7 @@ provider:
     OAUTH_DOMAIN: ${file(./secrets.json):OAUTH_DOMAIN}
     OAUTH_CLIENT_SECRET: ${file(./secrets.json):OAUTH_CLIENT_SECRET}
     OAUTH_CLIENT_PUBLIC_KEY: ${file(./oauth2_public_key.pem)}
+    MAX_PHOTO_SIZE: ${file(./settings.json):MAX_PHOTO_SIZE}
     S3_BUCKET_NAME: "${opt:stage, self:provider.stage}-crmapi-photo-bucket"
 
   iamRoleStatements:

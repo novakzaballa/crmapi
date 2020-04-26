@@ -26,10 +26,12 @@ import {
   CUSTOMER_TABLE,
   AWS_REGION,
   S3_BUCKET_NAME,
+  MAX_PHOTO_SIZE,
 } from "../common/constants";
 import { getDataMapper } from "../common/dbConnection";
 import { S3 } from "aws-sdk";
 import { Base64EncodedString } from "aws-sdk/clients/elastictranscoder";
+import { detectMimeType } from "../common/imageMime";
 
 @table(CUSTOMER_TABLE)
 export class Customer {
@@ -130,24 +132,30 @@ export class Customer {
     principalId: string,
     photoURL: string
   ): Promise<Customer> {
-    console.log(
-      "Customer.addPhoto ",
-      "Table:",
-      CUSTOMER_TABLE,
-      " Region:",
-      AWS_REGION
+    const mimeType = detectMimeType(photoData);
+    if (!mimeType) {
+      throw (Error(
+        "Request body must contain a valid jpeg, png or gif, base64 encoded image."
+      ).name = "INVALID_MIME_TYPE");
+    }
+    const sizeInKB = Math.ceil(
+      Math.ceil(photoData.length / 3) * 0.002249958533754
     );
+    if (MAX_PHOTO_SIZE && sizeInKB > MAX_PHOTO_SIZE) {
+      throw (Error(
+        `Image size must be less or equal than ${MAX_PHOTO_SIZE}KB.`
+      ).name = "FILE_SIZE_ERROR");
+    }
     let s3 = new S3();
     let buffer = Buffer.from(photoData, "base64");
-    const fileExtension = "jpg"; // TODO: get file extension from file if possible otherwise return with error
-    const fileName: string = `${this.CustomerId}_photo.${fileExtension}`;
+    const fileName: string = `${this.CustomerId}_photo${mimeType.extension}`;
     const request = await s3
       .putObject({
         Body: buffer,
         Bucket: S3_BUCKET_NAME,
         Key: fileName,
         ContentDisposition: `inline; filename=${fileName}`, // attachment; to force download
-        ContentEncoding: "image/jpeg",
+        ContentEncoding: mimeType.mime,
       })
       .promise();
     if (
@@ -156,11 +164,11 @@ export class Customer {
       request.$response.httpResponse.statusCode != 200
     ) {
       throw Error(
-        "CRMAPI ERROR: there was an error writing the file. " +
-          request.$response.error
+        "There was an error writing the file. " + request.$response.error
       );
     }
 
+    // Add auditing data and se photo URL
     this.UpdatedAt = new Date().toISOString();
     this.UpdatedBy = principalId;
     this.PhotoURL = photoURL;
@@ -221,23 +229,28 @@ export class Customer {
     const result = await mapper.get<Customer>(customer);
     return result;
   }
-  
+
   /**
    * List all customers from DynamoDB
    */
-  static async listAll(pageSize: number, startKey: any = null/*{ [key: string]: any; }*/): Promise<any> {
+  static async listAll(
+    pageSize: number,
+    startKey: any = null /*{ [key: string]: any; }*/
+  ): Promise<any> {
     console.log(
       "Customer.listAll Table:",
       CUSTOMER_TABLE,
       " Region:",
       AWS_REGION
     );
-    
+
     const options: ScanOptions = {
       pageSize: pageSize,
-      startKey: startKey? {GroupId: startKey.slice(-1), CustomerId: startKey} : null,
-  //    limit: pageSize
-    }
+      startKey: startKey
+        ? { GroupId: startKey.slice(-1), CustomerId: startKey }
+        : null,
+      //    limit: pageSize
+    };
     let customers: Customer[] = [];
     const mapper = getDataMapper();
     const pages = mapper.scan(Customer, options).pages();
@@ -245,28 +258,12 @@ export class Customer {
       customers = [...item];
       break;
     }
-      const result = {
-      lastEvaluatedKey: pages.lastEvaluatedKey?.CustomerId, 
-      count: pages.count, 
+    const result = {
+      lastEvaluatedKey: pages.lastEvaluatedKey?.CustomerId,
+      count: pages.count,
       scannedCount: pages.scannedCount,
-      items: customers
-    }
-    return result;
-  }
-
-  static async listAll2(): Promise<Customer[]> {
-    console.log(
-      "Customer.listAll Table:",
-      CUSTOMER_TABLE,
-      " Region:",
-      AWS_REGION
-    );
-    const result = new Array();
-    const mapper = getDataMapper();
-    for await (const item of mapper.scan<Customer>(Customer)) {
-      result.push(item);
-    }
-
+      items: customers,
+    };
     return result;
   }
 

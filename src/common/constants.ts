@@ -8,3 +8,4 @@ export const OAUTH_DOMAIN = process.env.OAUTH_DOMAIN;
 export const OAUTH_CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET;
 export const OAUTH_CLIENT_PUBLIC_KEY = process.env.OAUTH_CLIENT_PUBLIC_KEY;
 export const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
+export const MAX_PHOTO_SIZE = parseInt(process.env.MAX_PHOTO_SIZE);
