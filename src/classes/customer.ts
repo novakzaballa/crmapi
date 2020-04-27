@@ -32,6 +32,7 @@ import { getDataMapper } from "../common/dbConnection";
 import { S3 } from "aws-sdk";
 import { Base64EncodedString } from "aws-sdk/clients/elastictranscoder";
 import { detectMimeType } from "../common/imageMime";
+import { v4 } from "uuid";
 
 @table(CUSTOMER_TABLE)
 export class Customer {
@@ -40,10 +41,7 @@ export class Customer {
   @hashKey()
   GroupId!: String;
 
-  @IsString()
-  @IsDefined()
-  @IsNotEmpty()
-  @rangeKey()
+  @rangeKey({ defaultProvider: () => v4() })
   CustomerId!: String;
 
   @IsString()
@@ -80,13 +78,13 @@ export class Customer {
   Phone?: String;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @attribute()
   CreatedBy!: String;
 
   @IsString()
   @IsISO8601()
-  @IsNotEmpty()
+  @IsOptional()
   @attribute()
   CreatedAt!: String;
 
@@ -110,14 +108,21 @@ export class Customer {
    * @abstract: Adds a new customer to Customers table.
    * GroupId(S), CustomerId(S), Name(S), Surname(S) Email(S) Age(N) and Phone(S) are required.
    */
-  async createOrUpdate(): Promise<Customer> {
+  async createOrUpdate(principalId): Promise<Customer> {
     console.log(
       "Customer.createOrUpdate Table:",
       CUSTOMER_TABLE,
       " Region:",
       AWS_REGION
     );
-    this.GroupId = this.CustomerId.slice(-1);
+    // Add auditing data
+    if (!this.CustomerId) {
+      this.CreatedAt = new Date().toISOString();
+      this.CreatedBy = principalId;
+    }
+    this.UpdatedAt = new Date().toISOString();
+    this.UpdatedBy = principalId;
+    this.GroupId = this.Surname.charAt(0).toUpperCase();
     const mapper = getDataMapper();
     const result = await mapper.put<Customer>({ item: this });
     return result;

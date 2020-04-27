@@ -34,13 +34,15 @@ export const putCustomer: APIGatewayProxyWithLambdaAuthorizerHandler<TAuthorizer
     const customer = new Customer();
     Object.assign(customer, JSON.parse(eventBody));
     if (customer) {
-      // Add auditing data
-      customer.CreatedAt = new Date().toISOString();
-      customer.CreatedBy = event.requestContext.authorizer.principalId;
-      // Validate against schema
+      if (customer.CustomerId || customer.GroupId){
+        result.statusCode = 400;
+        result.body = JSON.stringify({"Err":"GroupId and CustomerId can not be set."});
+        return result;
+      }
+    // Validate against schema
       const valid: any = await customer.validateSchema();
       if (valid === "OK") {
-        const customerData: Customer = await customer.createOrUpdate();
+        const customerData: Customer = await customer.createOrUpdate(event.requestContext.authorizer.principalId);
         result.body = JSON.stringify(customerData);
         result.statusCode = 201;
         return result;

@@ -41,6 +41,7 @@ export const listCustomers: APIGatewayProxyHandler = async function (
       ? event.queryStringParameters.startKey
       : null;
     const customerList: Customer[] = await Customer.listAll(pageSize, startKey);
+    result.statusCode = 200;
     result.body = JSON.stringify(customerList);
     return result;
   } catch (err) {

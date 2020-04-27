@@ -52,13 +52,10 @@ export const updateCustomer: APIGatewayProxyWithLambdaAuthorizerHandler<TAuthori
           result.body = JSON.stringify({"Err":"GroupId and CustomerId can not be modified."});
           return result;
         }
-        // Add auditing data
-        customer.UpdatedAt = new Date().toISOString();
-        customer.UpdatedBy = event.requestContext.authorizer.principalId;
         // Validate against schema
         let validateMsg: any = await customer.validateSchema();
         if (validateMsg === "OK") {
-          const customerData: Customer = await customer.createOrUpdate();
+          const customerData: Customer = await customer.createOrUpdate(event.requestContext.authorizer.principalId);
           result.body = JSON.stringify(customerData);
           result.statusCode = 202;
           return result;
