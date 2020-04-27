@@ -91,7 +91,6 @@ Example Succesfull Request Payload:
 
 ```bash
 {
-"CustomerId":"4532324",
 "Name":"Paul Ray",
 "Surname":"Ghost",
 "Phone":"(122)23878 343",
@@ -120,7 +119,6 @@ Example Rejected Request Payload:
 
 ```bash
     {
-    "CustomerId":3644565,
       "Name":"John",
       "Surname":"Wayne",
       "Phone":"(123) 22388 765",
@@ -188,72 +186,4 @@ Example validation error result (Status 400 - Bad Request):
         }
     }
 ]
-```  
-
-### List all Customers
-
-// TODO : Work in progress
-<!--
-
-```bash
-
-curl -H "Content-Type:application/json" http://localhost:3000/customers
-
 ```
-
-Example output (Status 400 - Bad Request):
-
-```bash
-
-[{"text":"Deploy my first service","id":"ac90feaa11e6-9ede-afdfa051af86","checked":true,"updatedAt":1479139961304},{"text":"Learn Serverless","id":"206793aa11e6-9ede-afdfa051af86","createdAt":1479139943241,"checked":false,"updatedAt":1479139943241}]%
-
-```
-
-### Get one Customer
-
-```bash
-
-# Replace the \<id> part with a real id from your todos table
-
-curl -H "Content-Type:application/json" http://localhost:3000/customers/\<id>
-
-```
-
-Example Result:
-
-```bash
-
-{"text":"Learn Serverless","id":"ee6490d0-aa11e6-9ede-afdfa051af86","createdAt":1479138570824,"checked":false,"updatedAt":1479138570824}%
-
-```
-
-### Update a Customer  
-
-```bash
-
-# Replace the \<id> part with a real id from your todos table
-
-curl -X PUT -H "Content-Type:application/json" http://localhost:3000/customers/\<id> --data '{ "name": "sdvsdsdfsdfsdf", "surname": "sdfsdfsdfsdf" }'
-
-```
-
-Example Result:
-
-```bash
-
-{"CustomerId":"87263473","Name": "sdvsdsdfsdfsdf", "Surname": "sdfsdfsdfsdf", "createdAt":"20201323344Z", "updatedAt":"2020132334345Z"}%
-
-```
-
-### Delete a Customer
-
-```bash
-
-# Replace the \<id> part with a real id from your todos table
-
-curl -X DELETE -H "Content-Type:application/json" http://localhost:3000/customers/\<id>
-
-```
-
-No output
--->
