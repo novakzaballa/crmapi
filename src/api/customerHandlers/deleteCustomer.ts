@@ -34,7 +34,7 @@ export const deleteCustomer: APIGatewayProxyHandler = async function (
   try {
     const customer: Customer = await Customer.getOne(customerId);
     if (customer) {
-      const deleted = await Customer.deleteOne(customerId);
+      const deleted = await customer.delete();
       result.statusCode = 200;
       result.body = JSON.stringify(deleted);
     }

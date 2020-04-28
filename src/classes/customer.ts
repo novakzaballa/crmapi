@@ -111,9 +111,9 @@ export class Customer {
   /**
    * Adds a new customer to Customers table.
    * GroupId(S), CustomerId(S), Name(S), Surname(S) Email(S) Age(N) and Phone(S) are required.
-   * @param principalId 
+   * @param principalId
    */
-   async createOrUpdate(principalId): Promise<Customer> {
+  async createOrUpdate(principalId): Promise<Customer> {
     // Add auditing data
     if (!this.CustomerId) {
       this.CustomerId = v4();
@@ -154,7 +154,9 @@ export class Customer {
     let s3 = new S3();
     // If a previous photo exists, then delete it.
     if (this.PhotoFileName) {
-      await s3.deleteObject({ Bucket: S3_BUCKET_NAME, Key: `${this.PhotoFileName}`}).promise();
+      await s3
+        .deleteObject({ Bucket: S3_BUCKET_NAME, Key: `${this.PhotoFileName}` })
+        .promise();
     }
     let buffer = Buffer.from(photoData, "base64");
     const fileName: string = `${this.CustomerId}_photo${mimeType.extension}`;
@@ -194,12 +196,12 @@ export class Customer {
   async getPhoto(): Promise<string> {
     let s3 = new S3();
     if (!this.PhotoFileName) {
-      throw "No picture URL for this user."
+      throw "No picture URL for this user.";
     }
     // Alternatively provide a temporary URL to download directly from S3
     // const url = await s3.getSignedUrlPromise("getObject", { Bucket: S3_BUCKET_NAME, Key: fileName, Expires: 600 });
     const response = await s3
-      .getObject({ Bucket: S3_BUCKET_NAME, Key: `${this.PhotoFileName}`})
+      .getObject({ Bucket: S3_BUCKET_NAME, Key: `${this.PhotoFileName}` })
       .promise();
     if (
       !response ||
@@ -238,6 +240,29 @@ export class Customer {
    *
    * @param customerId
    */
+  async delete(): Promise<Customer> {
+    if (!this.CustomerId) {
+      throw "Object does not have a customer.";
+    }
+
+    // If a previous photo exists, then delete it.
+    let s3 = new S3();
+    if (this.PhotoFileName) {
+      await s3
+        .deleteObject({ Bucket: S3_BUCKET_NAME, Key: `${this.PhotoFileName}` })
+        .promise();
+    }
+
+    const mapper = getDataMapper();
+    const result = await mapper.delete<Customer>(this);
+    return result;
+  }
+
+  /**
+   * Delete a customer from DynamoDB
+   *
+   * @param customerId
+   */
   static async deleteOne(customerId: String): Promise<Customer> {
     if (!customerId) {
       return null;
@@ -247,6 +272,7 @@ export class Customer {
       GroupId: groupId,
       CustomerId: customerId,
     });
+
     const mapper = getDataMapper();
     const result = await mapper.delete<Customer>(customer);
     return result;
@@ -258,7 +284,6 @@ export class Customer {
     pageSize: number,
     startKey: any = null /*{ [key: string]: any; }*/
   ): Promise<any> {
-
     const options: ScanOptions = {
       pageSize: pageSize,
       startKey: startKey
