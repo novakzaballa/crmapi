@@ -59,7 +59,6 @@ export const addCustomerPhoto: APIGatewayProxyWithLambdaAuthorizerHandler<TAutho
           photoURL
         )
       ).PhotoURL;
-      //console.log(customerData);
       result.body = JSON.stringify(customerData);
       result.statusCode = 201;
       return result;
@@ -77,7 +76,7 @@ export const addCustomerPhoto: APIGatewayProxyWithLambdaAuthorizerHandler<TAutho
       result.statusCode = 500;
       result.body = JSON.stringify(err);
     }
-    console.log("Get Item Error", {
+    console.log("Add customer photo error", {
       err,
       event,
     });

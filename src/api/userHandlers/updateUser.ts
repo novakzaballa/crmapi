@@ -8,16 +8,17 @@ import { CrmUser } from "../../classes/CrmUser";
 import { passPolicyEnforce } from "../../common/auth0Helper";
 
 /**
- * AWS Lambda Event handler to create a user in the IDP (Auth0)
+ * AWS Lambda Event handler to update a user in the IDP (Auth0)
  *
  * @param event
  */
 
-export const createUser: APIGatewayProxyHandler = async function (
+export const updateUser: APIGatewayProxyHandler = async function (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const result: APIGatewayProxyResult = {
-    body: "Missing params given_name, family_name, email or password.",
+    body:
+      "Required at least on of these params given_name, family_name, password or password.",
     statusCode: 400,
   };
   const { body: eventBody } = event;
@@ -25,16 +26,34 @@ export const createUser: APIGatewayProxyHandler = async function (
   if (!eventBody) {
     return result;
   }
+  let userId: string = "";
+  if (
+    !event.pathParameters ||
+    event.queryStringParameters ||
+    !event.pathParameters.id
+  ) {
+    result.body = "Wrong parameters or missing {id} in request path";
+    return result;
+  } else {
+    userId = `${event.pathParameters.id}`;
+  }
   try {
-    const { email, password, given_name, family_name } = JSON.parse(eventBody);
-    if (!email || !password || !given_name || !family_name) {
+    const { email, password, given_name, family_name, blocked } = JSON.parse(
+      eventBody
+    );
+    if (email) {
+      result.body = "User email can not be changed.";
       return result;
     }
-    const user: any = await CrmUser.createUser(
-      email,
+    if (!password && !given_name && !family_name && !blocked) {
+      return result;
+    }
+    const user: any = await CrmUser.UpdateIdpUser(
+      userId,
       password,
       given_name,
       family_name,
+      blocked,
       passPolicyEnforce.strong
     );
     if (user) {
@@ -46,6 +65,7 @@ export const createUser: APIGatewayProxyHandler = async function (
         created_at: user.created_at,
         user_id: user.user_id.slice("auth0|".length),
         nickname: user.nickname,
+        blocked: user.blocked
       });
     } else {
       throw new Error("Unknown internal error. User list empty.");
@@ -59,7 +79,7 @@ export const createUser: APIGatewayProxyHandler = async function (
       result.statusCode = 500;
     }
     result.body = `${err}`;
-    console.log("Create user error:", {
+    console.log("Update user error:", {
       err,
       event,
     });

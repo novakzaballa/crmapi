@@ -14,7 +14,7 @@ import "source-map-support/register";
  * or userid parsed by the authorizer and stored in the TAuthorizerContext
  */
 
-export const getCustomer: APIGatewayProxyHandler = async function (
+export const deleteCustomer: APIGatewayProxyHandler = async function (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const result: APIGatewayProxyResult = {
@@ -32,21 +32,25 @@ export const getCustomer: APIGatewayProxyHandler = async function (
     customerId = `${event.pathParameters.id}`;
   }
   try {
-    const customerData: Customer = await Customer.getOne(customerId);
-    let valid: any = await customerData.validateSchema();
-    if (valid === "OK") {
+    const customer: Customer = await Customer.getOne(customerId);
+    if (customer) {
+      const deleted = await Customer.deleteOne(customerId);
       result.statusCode = 200;
-      result.body = JSON.stringify(customerData);
+      result.body = JSON.stringify(deleted);
+    }
+    else {
+        result.statusCode = 404;
+        result.body = JSON.stringify("");
     }
   } catch (err) {
     if (err.name === "ItemNotFoundException") {
       result.statusCode = 404;
-      result.body = JSON.stringify({});
+      result.body = "";
     } else {
       result.statusCode = 500;
       result.body = JSON.stringify(err);
     }
-    console.log("Get customer error", {
+    console.log("Delete customer error", {
       err,
       event,
     });

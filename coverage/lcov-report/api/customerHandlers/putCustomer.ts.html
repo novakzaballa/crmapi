@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">51.85% </span>
+                <span class="strong">70.37% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>14/27</span>
+                <span class='fraction'>19/27</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">40% </span>
+                <span class="strong">70% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/10</span>
+                <span class='fraction'>7/10</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">51.85% </span>
+                <span class="strong">70.37% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>14/27</span>
+                <span class='fraction'>19/27</span>
             </div>
         
             
@@ -157,22 +157,22 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -219,23 +219,23 @@ export const putCustomer: APIGatewayProxyWithLambdaAuthorizerHandler&lt;TAuthori
     const customer = new Customer();
     Object.assign(customer, JSON.parse(eventBody));
     <span class="missing-if-branch" title="else path not taken" >E</span>if (customer) {
-      <span class="missing-if-branch" title="else path not taken" >E</span>if (customer.CustomerId || <span class="branch-1 cbranch-no" title="branch not covered" >customer.GroupId)</span>{
-        result.statusCode = 400;
-        result.body = JSON.stringify({"Err":"GroupId and CustomerId can not be set."});
-        return result;
+      <span class="missing-if-branch" title="if path not taken" >I</span>if (customer.CustomerId || customer.GroupId){
+<span class="cstat-no" title="statement not covered" >        result.statusCode = 400;</span>
+<span class="cstat-no" title="statement not covered" >        result.body = JSON.stringify({"Err":"GroupId and CustomerId can not be set."});</span>
+<span class="cstat-no" title="statement not covered" >        return result;</span>
       }
     // Validate against schema
-      const valid: any = <span class="cstat-no" title="statement not covered" >await customer.validateSchema();</span>
-<span class="cstat-no" title="statement not covered" >      if (valid === "OK") {</span>
-        const customerData: Customer = <span class="cstat-no" title="statement not covered" >await customer.createOrUpdate(event.requestContext.authorizer.principalId);</span>
-<span class="cstat-no" title="statement not covered" >        result.body = JSON.stringify(customerData);</span>
-<span class="cstat-no" title="statement not covered" >        result.statusCode = 201;</span>
-<span class="cstat-no" title="statement not covered" >        return result;</span>
+      const valid: any = await customer.validateSchema();
+      if (valid === "OK") {
+        const customerData: Customer = await customer.createOrUpdate(event.requestContext.authorizer.principalId);
+        result.body = JSON.stringify(customerData);
+        result.statusCode = 201;
+        return result;
       } else {
-<span class="cstat-no" title="statement not covered" >        result.body = JSON.stringify(valid);</span>
+        result.body = JSON.stringify(valid);
       }
     }
-<span class="cstat-no" title="statement not covered" >    return result;</span>
+    return result;
   } catch (err) {
 <span class="cstat-no" title="statement not covered" >    result.statusCode = 500;</span>
 <span class="cstat-no" title="statement not covered" >    result.body = JSON.stringify(err);</span>
@@ -253,7 +253,7 @@ export const putCustomer: APIGatewayProxyWithLambdaAuthorizerHandler&lt;TAuthori
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Mon Apr 27 2020 03:34:29 GMT-0400 (Bolivia Time)
+                at Mon Apr 27 2020 16:37:14 GMT-0400 (Bolivia Time)
             </div>
         </div>
         <script src="../../prettify.js"></script>

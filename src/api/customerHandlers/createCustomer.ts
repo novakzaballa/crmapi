@@ -19,7 +19,7 @@ export interface TAuthorizerContext {
  * or userid parsed by the authorizer and stored in the TAuthorizerContext
  */
 
-export const putCustomer: APIGatewayProxyWithLambdaAuthorizerHandler<TAuthorizerContext> = async function (
+export const createCustomer: APIGatewayProxyWithLambdaAuthorizerHandler<TAuthorizerContext> = async function (
   event: APIGatewayProxyWithLambdaAuthorizerEvent<TAuthorizerContext>
 ): Promise<APIGatewayProxyResult> {
   const { body: eventBody } = event;
@@ -54,7 +54,7 @@ export const putCustomer: APIGatewayProxyWithLambdaAuthorizerHandler<TAuthorizer
   } catch (err) {
     result.statusCode = 500;
     result.body = JSON.stringify(err);
-    console.log("create Error", {
+    console.log("Create customer error", {
       err,
       event,
     });

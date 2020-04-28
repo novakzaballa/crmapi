@@ -7,7 +7,7 @@ import {
   IsOptional,
 } from "class-validator";
 
-import { passPolicyEnforce, addIdpUser, listIdpUsers, authenticateIdpUser, setIdpRole, roleType } from "../common/auth0Helper";
+import { passPolicyEnforce, addIdpUser, listIdpUsers, authenticateIdpUser, setIdpRole, roleType, deleteIdpUser, deleteIdpUserByEmail, UpdateIdpUser } from "../common/auth0Helper";
 
 interface identity {
   user_id: string; // "5e9bf5ebde431a0c8d65b8c2",
@@ -18,8 +18,12 @@ interface identity {
 
 export class CrmUser {
   @IsString()
-  @IsOptional()
-  created_at: string; // "2020-04-19T0: string;5// : string;3// 9.334Z",
+  @IsDefined()
+  given_name
+
+  @IsString()
+  @IsDefined()
+  family_name
 
   @IsString()
   @IsEmail()
@@ -32,6 +36,10 @@ export class CrmUser {
 
   @IsOptional()
   identities: identity[];
+
+  @IsString()
+  @IsOptional()
+  created_at: string; // "2020-04-19T0: string;5// : string;3// 9.334Z",
 
   @IsString()
   @IsOptional()
@@ -65,19 +73,46 @@ export class CrmUser {
   logins_count: number; // 17
 
   /**
-   * List users ordered by nick name (left part of the @ symbol in user email)
-   * @param per_page Users per page to be returned
-   * @param page  Page to be returned
+   * Creates a new user in the Auth0 IDP
+   * @param email 
+   * @param password 
+   * @param policy 
    */
   static async createUser(
     email: string,
     password: string,
-    policy: passPolicyEnforce = passPolicyEnforce.none
+    given_name: string,
+    family_name: string,
+    policy: passPolicyEnforce = passPolicyEnforce.strong //Password policy implemented in addIdpUser helper
     ): Promise<any> {
     try {
-      return await addIdpUser(email, password, policy);
+      return await addIdpUser(email, password, given_name, family_name, policy);
     } catch (err) {
-      console.log("users.addUser Error:", err);
+      console.log("Create user error:", err);
+      throw new Error(err);
+    }
+  }
+
+  /**
+   * 
+   * @param email 
+   * @param password 
+   * @param given_name 
+   * @param family_name 
+   * @param policy 
+   */
+  static async UpdateIdpUser(
+    uid: string,
+    password: string,
+    given_name: string,
+    family_name: string,
+    blocked: boolean,
+    policy: passPolicyEnforce = passPolicyEnforce.strong //Password policy implemented in addIdpUser helper
+    ): Promise<any> {
+    try {
+      return await UpdateIdpUser(uid, password, given_name, family_name, blocked, policy);
+    } catch (err) {
+      console.log("Update user error:", err);
       throw new Error(err);
     }
   }
@@ -94,7 +129,7 @@ export class CrmUser {
     try {
       return await listIdpUsers(per_page, page);
     } catch (err) {
-      console.log("users.listAll Error:", err);
+      console.log("List users error:", err);
       throw new Error(err);
     }
   }
@@ -114,23 +149,57 @@ export class CrmUser {
     try {
       return await authenticateIdpUser(email, password);
     } catch (err) {
-      console.log("users.listAll Error:", err);
+      console.log("Authenticate IDP user error:", err);
       throw new Error(err);
     }
   }
-  
-  static async setUserRole(
+
+  /**
+   * Set or unset admin role of an Auth0 IDP user
+   * @param email 
+   * @param role 
+   */  
+  static async setUserRoleByEmail(
     email: string,
     role: string
     ): Promise<any> {
     try {
       return await setIdpRole(email, role as roleType);
     } catch (err) {
-      console.log("users.listAll Error:", err);
+      console.log("Set user role error:", err);
       throw new Error(err);
     }
   }
 
+  /**
+   * Deletes a user from Auth0 IDP found by email
+   * @param id User ID
+   */
+  static async deleteByEmail(
+    email: string
+    ): Promise<any> {
+    try {
+      return await deleteIdpUserByEmail(email as roleType);
+    } catch (err) {
+      console.log("User delete by email error:", err);
+      throw new Error(err);
+    }
+  }
+
+  /**
+   * Deletes a user from Auth0 IDP
+   * @param id User ID
+   */
+  static async delete(
+    id: string
+    ): Promise<any> {
+    try {
+      return await deleteIdpUser(id as roleType);
+    } catch (err) {
+      console.log("User delete error:", err);
+      throw new Error(err);
+    }
+  }
   /**
    * Validates schema. When creating a new user only validates email. 
    */

@@ -57,13 +57,14 @@ provider:
         - dynamodb:Scan
         - dynamodb:GetItem
         - dynamodb:PutItem
+        - dynamodb:DeleteItem
         - s3:*
       Resource: "*"
       #Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.CUSTOMER_TABLE}"
 
 functions:
-  putCustomer:
-    handler: src/api/customerHandlers/putCustomer.putCustomer
+  createCustomer:
+    handler: src/api/customerHandlers/createCustomer.createCustomer
     events:
       - http:
           method: post
@@ -75,6 +76,14 @@ functions:
     events:
       - http:
           method: put
+          path: api/customers/{id}
+          authorizer: authorizerFunc
+
+  deleteCustomer:
+    handler: src/api/customerHandlers/deleteCustomer.deleteCustomer
+    events:
+      - http:
+          method: delete
           path: api/customers/{id}
           authorizer: authorizerFunc
 
@@ -123,6 +132,30 @@ functions:
     events:
       - http:
           method: post
+          path: api/users
+          authorizer: authorizerFunc
+
+  updateUser:
+    handler: src/api/userHandlers/updateUser.updateUser
+    events:
+      - http:
+          method: put
+          path: api/users/{id}
+          authorizer: authorizerFunc
+
+  deleteUser:
+    handler: src/api/userHandlers/deleteUser.deleteUser
+    events:
+      - http:
+          method: delete
+          path: api/users/{id}
+          authorizer: authorizerFunc
+
+  deleteUserByEmail:
+    handler: src/api/userHandlers/deleteUserByEmail.deleteUserByEmail
+    events:
+      - http:
+          method: delete
           path: api/users
           authorizer: authorizerFunc
 

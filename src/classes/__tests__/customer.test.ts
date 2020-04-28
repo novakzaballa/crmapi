@@ -1,4 +1,4 @@
-import { Customer } from "../../../classes/Customer";
+import { Customer } from "../Customer";
 import { DataMapper } from "@aws/dynamodb-data-mapper";
 jest.mock("@aws/dynamodb-data-mapper");
 
@@ -26,14 +26,13 @@ describe("Customer Methods", () => {
   it.only("Unit Test: Customer.CreateOrUpdate", async () => {
     // const dataMapper = new DataMapper();
     // const mockDataMapperPut = jest.spyOn(DataMapper, 'put'); 
-    const result = await customerMock.createOrUpdate();
+    const result = await customerMock.createOrUpdate("jestTestUser");
     
     expect(DataMapper).toHaveBeenCalledTimes(1);
     const mockDataMapperInstance = (DataMapper as jest.Mock).mock.instances[0];
     const mockPut = mockDataMapperInstance.put;
     expect(mockPut.mock.calls[0][0].item).toEqual(customerMock);
     expect(mockPut).toHaveBeenCalledTimes(1);
-  
     console.log(result);
     });
   });

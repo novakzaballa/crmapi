@@ -45,7 +45,7 @@ export const listUsers: APIGatewayProxyHandler = async function (
   } catch (err) {
     result.statusCode = 500;
     result.body = JSON.stringify(err);
-    console.log("ListUsersApiError:", {
+    console.log("List users error:", {
       err,
       event,
     });

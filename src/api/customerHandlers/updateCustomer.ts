@@ -44,45 +44,45 @@ export const updateCustomer: APIGatewayProxyWithLambdaAuthorizerHandler<TAuthori
     const customer: Customer = await Customer.getOne(customerId);
     if (customer) {
       // If found try to update the item
-      try {
-        let groupId = customer.GroupId;
-        Object.assign(customer, JSON.parse(eventBody));
-        if (customer.CustomerId !== customerId || customer.GroupId !== groupId){
-          result.statusCode = 400;
-          result.body = JSON.stringify({"Err":"GroupId and CustomerId can not be modified."});
-          return result;
-        }
-        // Validate against schema
-        let validateMsg: any = await customer.validateSchema();
-        if (validateMsg === "OK") {
-          const customerData: Customer = await customer.createOrUpdate(event.requestContext.authorizer.principalId);
-          result.body = JSON.stringify(customerData);
-          result.statusCode = 202;
-          return result;
-        } else {
-          result.statusCode = 400;
-          result.body = JSON.stringify(validateMsg);
-        }
-        return result;
-      } catch (err) {
-        result.statusCode = 500;
-        result.body = JSON.stringify(err);
-        console.log("create Error", {
-          err,
-          event,
+      let groupId = customer.GroupId;
+      Object.assign(customer, JSON.parse(eventBody));
+      if (
+        customer.CustomerId !== customerId ||
+        customer.GroupId !== groupId
+      ) {
+        result.statusCode = 400;
+        result.body = JSON.stringify({
+          Err: "GroupId and CustomerId can not be modified.",
         });
         return result;
       }
-    }
+      // Validate against schema
+      let validateMsg: any = await customer.validateSchema();
+      if (validateMsg === "OK") {
+        const customerData: Customer = await customer.createOrUpdate(
+          event.requestContext.authorizer.principalId
+        );
+        result.body = JSON.stringify(customerData);
+        result.statusCode = 200;
+        return result;
+      } else {
+        result.statusCode = 400;
+        result.body = JSON.stringify(validateMsg);
+      }
+      return result;
+  }
   } catch (err) {
-    if (err.name === "ItemNotFoundException") {
+    if (`${err}`.toUpperCase().includes("JSON")) {
+      result.statusCode = 400;
+      result.body = JSON.stringify("Malformed JSON in POST body");
+    } else if (err.name === "ItemNotFoundException") {
       result.statusCode = 404;
       result.body = JSON.stringify({});
     } else {
       result.statusCode = 500;
       result.body = JSON.stringify(err);
     }
-    console.log("Get Item Error", {
+    console.log("Update customer error", {
       err,
       event,
     });

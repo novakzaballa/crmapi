@@ -14,7 +14,8 @@ paths:
     post:
       tags:
       - Authenticate User
-      summary: Authorize example
+      summary: Authenticate user
+      description: If email and password are correct, returns an access token to be used in future calls to API.  
       operationId: Authorizeexample
       parameters: []
       requestBody:
@@ -38,17 +39,7 @@ paths:
       tags:
       - Users Management
       summary: setUserRole
-      description: >
-        ## AWS Lambda Event handler to set the role of a user in IDP (Auth0)
-
-
-        handler: src/api/userHandlers/setUserRole.setUserRole
-
-        events:
-          - http:
-              method: post
-              path: api/users/role
-              authorizer: authorizerFunc
+      description: Set the role of an user in IDP (Auth0)
       operationId: setUserRole
       parameters: []
       requestBody:
@@ -71,17 +62,7 @@ paths:
       tags:
       - Users Management
       summary: createUser
-      description: >
-        ## AWS Lambda Event handler to create a user in the IDP (Auth0)
-
-
-        handler: src/api/userHandlers/createUser.createUser
-
-        events:
-          - http:
-              method: post
-              path: api/users
-              authorizer: authorizerFunc
+      description: Create a user in the IDP (Auth0)
       operationId: createUser
       parameters: []
       requestBody:
@@ -103,17 +84,7 @@ paths:
       tags:
       - Users Management
       summary: listUsers
-      description: >
-        ## AWS Lambda Event handler to list users from IDP (Auth0)
-
-
-        handler: src/api/userHandlers/listUsers.listUsers
-
-        events:
-          - http:
-              method: get
-              path: api/users
-              authorizer: authorizerFunc
+      description: List users from IDP (Auth0)
       operationId: listUsers
       parameters:
       - name: per_page
@@ -139,20 +110,63 @@ paths:
           description: ''
           headers: {}
       deprecated: false
+  /users/{userId}:
+    delete:
+      tags:
+      - Users Management
+      summary: deleteUser
+      description: Delete user from Auth0 IDP
+      operationId: deleteUser
+      parameters:
+      - name: userId
+        in: path
+        style: simple
+        schema:
+          type: string
+        required: true
+        description: Alphanumeric ID of the user to delete
+      responses:
+        200:
+          description: ''
+          headers: {}
+      deprecated: false
+    put:
+      tags:
+      - Users Management
+      summary: updateUser
+      description: 'Update data of an IDP user '
+      operationId: updateUser
+      parameters:
+      - name: userId
+        in: path
+        description: 'ID of the user to be updated'
+        required: true
+        style: simple
+        schema:
+          type: string
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateUserRequest'
+            example:
+              given_name: Jhon E.
+              family_name: Doe Oe
+              password: MyT3stPass#
+        required: true
+      responses:
+        200:
+          description: ''
+          headers: {}
+      deprecated: false
   /customers:
     post:
       tags:
       - Customers API
-      summary: putCustomer
-      description: >-
-        handler: src/api/customerHandlers/putCustomer.putCustomer
-
-        events:
-          - http:
-              method: post
-              path: api/customers
-              authorizer: authorizerFunc
-      operationId: putCustomer
+      summary: createCustomer
+      description: Creates a customer in the CRM database
+      operationId: createCustomer
       parameters: []
       requestBody:
         description: 'Add new customer to the CRM'
@@ -176,17 +190,7 @@ paths:
       tags:
       - Customers API
       summary: listCustomers
-      description: >
-        ## AWS Lambda Event handler to list Customers from Database.
-
-
-        handler: src/api/customerHandlers/listCustomers.listCustomers
-
-        events:
-          - http:
-              method: get
-              path: api/customers
-              authorizer: authorizerFunc
+      description: List Customers from Database.
       operationId: listCustomers
       parameters:
       - name: pageSize
@@ -212,24 +216,41 @@ paths:
           description: ''
           headers: {}
       deprecated: false
-  /customers/243432324:
+  /customers/{customerId}:
     get:
       tags:
       - Customers API
       summary: getCustomer
-      description: >
-        AWS Lambda Event handler to get one Customer from DynamoDB table.
-
-
-        handler: src/api/customerHandlers/getCustomer.getCustomer
-
-        events:
-          - http:
-              method: get
-              path: api/customers/{id}
-              authorizer: authorizerFunc
+      description: Get one Customer from DynamoDB table.
       operationId: getCustomer
-      parameters: []
+      parameters:
+      - name: customerId
+        in: path
+        style: simple
+        schema:
+          type: string
+        required: true
+        description: Alphanumeric ID of the customer to get data from
+        example: "243432324"
+      responses:
+        200:
+          description: ''
+          headers: {}
+      deprecated: false
+    delete:
+      tags:
+      - Customers API
+      summary: deleteCustomer
+      description: Deletes a determined customer by its ID
+      operationId: deleteCustomer
+      parameters:
+      - name: customerId
+        in: path
+        style: simple
+        schema:
+          type: string
+        required: true
+        description: Alphanumeric ID of the customer to get data from
       responses:
         200:
           description: ''
@@ -239,19 +260,17 @@ paths:
       tags:
       - Customers API
       summary: updateCustomer
-      description: >
-        AWS Lambda Event handler to update an existing customer in DynamoDB
-
-
-        handler: src/api/customerHandlers/updateCustomer.updateCustomer
-
-        events:
-          - http:
-              method: put
-              path: api/customers/{id}
-              authorizer: authorizerFunc
+      description: Update an existing customer in DynamoDB
       operationId: updateCustomer
-      parameters: []
+      parameters:
+      - name: customerId
+        in: path
+        style: simple
+        schema:
+          type: string
+        required: true
+        description: Alphanumeric ID of the customer to be updated.
+        example: "243432324"
       requestBody:
         description: ''
         content:
@@ -259,8 +278,6 @@ paths:
             schema:
               $ref: '#/components/schemas/updateCustomerRequest'
             example:
-              GroupId: 4
-              CustomerId: 243432324
               Name: Jorge Raul
               Surname: Thousand
               Age: 52
@@ -272,24 +289,22 @@ paths:
           description: ''
           headers: {}
       deprecated: false
-  /customers/243432324/photo:
+  /customers/{customerId}/photo:
     put:
       tags:
       - Customers API
       summary: addCustomerPhoto
-      description: >
-        ## AWS Lambda Event handler to add a photo in S3 to an existing Customer
-
-
-        handler: src/api/customerHandlers/addCustomerPhoto.addCustomerPhoto
-
-        events:
-          - http:
-              method: put
-              path: api/customers/{id}/photo
-              authorizer: authorizerFunc
+      description: Add a photo in S3 to an existing Customer
       operationId: addCustomerPhoto
-      parameters: []
+      parameters:
+      - name: customerId
+        in: path
+        style: simple
+        schema:
+          type: string
+        required: true
+        description: Alphanumeric ID of the customer to be updated with a new photo.
+        example: "243432324"
       requestBody:
         description: 'Base64 encoded JPG, PNG or GIF Image . Max size configured in settings.json. (150KB default)'
         content:
@@ -307,17 +322,7 @@ paths:
       tags:
       - Customers API
       summary: getCustomerPhoto
-      description: >
-        ## AWS Lambda Event handler to add a photo in S3 to an existing Customer
-
-
-        handler: src/api/customerHandlers/getCustomerPhoto.getCustomerPhoto
-
-        events:
-          - http:
-              method: get
-              path: api/customers/{id}/photo
-        #     authorizer: authorizerFunc
+      description: Get the customer photo in S3.
       operationId: getCustomerPhoto
       parameters:
       - name: Accept
@@ -328,9 +333,22 @@ paths:
         schema:
           type: string
           example: image/jpeg
+      - name: customerId
+        in: path
+        style: simple
+        schema:
+          type: string
+        required: true
+        description: Alphanumeric ID of the customer to be updated with a new photo.
+        example: "243432324"
       responses:
         200:
-          description: ''
+          description: 'Image returned'
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
           headers: {}
       deprecated: false
 components:
@@ -344,18 +362,26 @@ components:
       properties:
         email:
           type: string
+          format: email
         role:
           type: string
+          format: anyof ["user","admin"]
       example:
         email: zaballa.novak@gmail.com
         role: user
     createUserRequest:
       title: createUserRequest
       required:
+      - given_name
+      - family_name
       - email
       - password
       type: object
       properties:
+        given_name:
+          type: string
+        family_name:
+          type: string
         email:
           type: string
           format: email
@@ -363,8 +389,31 @@ components:
           type: string
           format: password
       example:
-        email: zaballa.novak@gmail.com
+        given_name: Jhon
+        family_name: Doe
+        email: jhondoe@mydomain.com.bo
         password: Myt3stPass#
+    updateUserRequest:
+      title: updateUserRequest
+      description: Requieres any of the following
+      type: object
+      properties:
+        given_name:
+          type: string
+        family_name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        blocked: 
+          type: boolean
+      example:
+        given_name: Jhon E.
+        family_name: Doe Oe
+        password: MyT3stPass#
     AuthorizeexampleRequest:
       title: AuthorizeexampleRequest
       required:
@@ -393,18 +442,22 @@ components:
       properties:
         Name:
           type: string
+          minLength: 2
+          maxLength: 255
         Surname:
           type: string
+          minLength: 2
+          maxLength: 255
         Phone:
           type: string
+          format: phonenumber
         Email:
           type: string
           format: email
         Age:
           type: integer
-          format: int32
-          min: 16
-          max: 110
+          minimum: 16
+          maximum: 110
       example:
         Name: Pedro Pablo
         Surname: Marmol
@@ -423,18 +476,23 @@ components:
       properties:
         Name:
           type: string
+          minLength: 2
+          maxLength: 255
         Surname:
           type: string
+          minLength: 2
+          maxLength: 255
         Phone:
           type: string
+          format: phonenumber
         Email:
           type: string
           format: email
         Age:
           type: integer
           format: int32
-          min: 16
-          max: 110
+          minimum: 16
+          maximum: 110
       example:
         Name: Jorge Raul
         Surname: Thousand
@@ -450,5 +508,5 @@ security:
 - bearerAuth: []
 tags:
 - name: Authenticate User
-- name: Users Management
 - name: Customers API
+- name: Users Management

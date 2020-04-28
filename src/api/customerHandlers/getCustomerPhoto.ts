@@ -35,9 +35,8 @@ export const getCustomerPhoto: APIGatewayProxyHandler = async function (
     if (customer) {
       // If found try to get the customer photo if exists
       const response = await customer.getPhoto();
-      //console.log(response);
       result.statusCode = 200;
-      result.headers = {'Content-Type': 'image/jpeg'};
+      result.headers = {['content-type'] : 'image/jpeg'};
       result.body = response;
       result.isBase64Encoded = true;
       return result;
@@ -50,7 +49,7 @@ export const getCustomerPhoto: APIGatewayProxyHandler = async function (
       result.statusCode = 500;
       result.body = JSON.stringify(err);
     }
-    console.log("Get Item Error", {
+    console.log("Get customer photo error", {
       err,
       event,
     });

@@ -29,7 +29,6 @@ export const authorizerFunc: CustomAuthorizerHandler = (
   context: Context,
   callback: Callback<APIGatewayAuthorizerResult>
 ) => {
-  //console.log("event", event); Enable for debugging only if really needed
   if (!event.authorizationToken) {
     return callback(new Error('No authorization token found in request header.'));
   }
@@ -61,7 +60,8 @@ export const authorizerFunc: CustomAuthorizerHandler = (
         const tmp = event.methodArn.split(":");
         const apiGatewayArnTmp = tmp[5].split("/");
         const awsAccountId = tmp[4];
-        const principalId = verifiedJwt.sub.split("|")[1];
+        // const principalId = verifiedJwt.sub.split("|")[1];
+        const principalId = verifiedJwt["http://crmapi email"];
         apiOptions.region = tmp[3];
         apiOptions.restApiId = apiGatewayArnTmp[0];
         apiOptions.stage = apiGatewayArnTmp[1];
@@ -75,12 +75,11 @@ export const authorizerFunc: CustomAuthorizerHandler = (
         if (verifiedJwt.scope && (verifiedJwt.scope.indexOf("admin") > -1 || verifiedJwt.scope.indexOf("users:write") > -1)) {
           policy.allowAllMethods(); 
         } else {
-          //policy.allowMethod(AuthPolicy.HttpVerb.GET, "api/users*"); // Enable for testing
           policy.allowMethod(AuthPolicy.HttpVerb.GET, "api/customers*");
           //if (verifiedJwt.scope && verifiedJwt.scope.indexOf("write:customers") > -1) { // Enable to have more control
-            policy.allowMethod(AuthPolicy.HttpVerb.PUT, "api/customers/*");
-            policy.allowMethod(AuthPolicy.HttpVerb.POST, "api/customers*");
-          //}
+          policy.allowMethod(AuthPolicy.HttpVerb.PUT, "api/customers/*");
+          policy.allowMethod(AuthPolicy.HttpVerb.POST, "api/customers*");
+          policy.allowMethod(AuthPolicy.HttpVerb.DELETE, "api/customers*");
         }
         var authResponse: APIGatewayAuthorizerResult = policy.build();
         authResponse.context = {

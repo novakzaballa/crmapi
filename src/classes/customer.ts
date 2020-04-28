@@ -24,7 +24,6 @@ import {
 } from "@aws/dynamodb-data-mapper-annotations";
 import {
   CUSTOMER_TABLE,
-  AWS_REGION,
   S3_BUCKET_NAME,
   MAX_PHOTO_SIZE,
 } from "../common/constants";
@@ -104,25 +103,26 @@ export class Customer {
   @attribute()
   PhotoURL?: String;
 
+  @IsString()
+  @IsOptional()
+  @attribute()
+  PhotoFileName?: String;
+
   /**
-   * @abstract: Adds a new customer to Customers table.
+   * Adds a new customer to Customers table.
    * GroupId(S), CustomerId(S), Name(S), Surname(S) Email(S) Age(N) and Phone(S) are required.
+   * @param principalId 
    */
-  async createOrUpdate(principalId): Promise<Customer> {
-    console.log(
-      "Customer.createOrUpdate Table:",
-      CUSTOMER_TABLE,
-      " Region:",
-      AWS_REGION
-    );
+   async createOrUpdate(principalId): Promise<Customer> {
     // Add auditing data
     if (!this.CustomerId) {
+      this.CustomerId = v4();
+      this.GroupId = this.CustomerId.slice(-1); // Can be replace by th tenant ID in the future
       this.CreatedAt = new Date().toISOString();
       this.CreatedBy = principalId;
     }
     this.UpdatedAt = new Date().toISOString();
     this.UpdatedBy = principalId;
-    this.GroupId = this.Surname.charAt(0).toUpperCase();
     const mapper = getDataMapper();
     const result = await mapper.put<Customer>({ item: this });
     return result;
@@ -152,6 +152,10 @@ export class Customer {
       ).name = "FILE_SIZE_ERROR");
     }
     let s3 = new S3();
+    // If a previous photo exists, then delete it.
+    if (this.PhotoFileName) {
+      await s3.deleteObject({ Bucket: S3_BUCKET_NAME, Key: `${this.PhotoFileName}`}).promise();
+    }
     let buffer = Buffer.from(photoData, "base64");
     const fileName: string = `${this.CustomerId}_photo${mimeType.extension}`;
     const request = await s3
@@ -177,6 +181,7 @@ export class Customer {
     this.UpdatedAt = new Date().toISOString();
     this.UpdatedBy = principalId;
     this.PhotoURL = photoURL;
+    this.PhotoFileName = fileName;
 
     const mapper = getDataMapper();
     const result: Customer = await mapper.put<Customer>({ item: this });
@@ -188,13 +193,13 @@ export class Customer {
    */
   async getPhoto(): Promise<string> {
     let s3 = new S3();
-    const fileExtension = "jpg";
-    const fileName: string = `${this.CustomerId}_photo.${fileExtension}`;
+    if (!this.PhotoFileName) {
+      throw "No picture URL for this user."
+    }
     // Alternatively provide a temporary URL to download directly from S3
     // const url = await s3.getSignedUrlPromise("getObject", { Bucket: S3_BUCKET_NAME, Key: fileName, Expires: 600 });
-    // console.log(url);
     const response = await s3
-      .getObject({ Bucket: S3_BUCKET_NAME, Key: fileName })
+      .getObject({ Bucket: S3_BUCKET_NAME, Key: `${this.PhotoFileName}`})
       .promise();
     if (
       !response ||
@@ -215,13 +220,6 @@ export class Customer {
    * @param customerId
    */
   static async getOne(customerId: String): Promise<Customer> {
-    console.log(
-      "Customer.getOne",
-      "Table:",
-      CUSTOMER_TABLE,
-      " Region:",
-      AWS_REGION
-    );
     if (!customerId) {
       return null;
     }
@@ -236,18 +234,30 @@ export class Customer {
   }
 
   /**
+   * Delete a customer from DynamoDB
+   *
+   * @param customerId
+   */
+  static async deleteOne(customerId: String): Promise<Customer> {
+    if (!customerId) {
+      return null;
+    }
+    const groupId = customerId.slice(-1);
+    const customer: Customer = Object.assign<Customer, any>(new Customer(), {
+      GroupId: groupId,
+      CustomerId: customerId,
+    });
+    const mapper = getDataMapper();
+    const result = await mapper.delete<Customer>(customer);
+    return result;
+  }
+  /**
    * List all customers from DynamoDB
    */
   static async listAll(
     pageSize: number,
     startKey: any = null /*{ [key: string]: any; }*/
   ): Promise<any> {
-    console.log(
-      "Customer.listAll Table:",
-      CUSTOMER_TABLE,
-      " Region:",
-      AWS_REGION
-    );
 
     const options: ScanOptions = {
       pageSize: pageSize,
@@ -273,7 +283,7 @@ export class Customer {
   }
 
   /**
-   * @abstract validates the schema and request payload
+   * Validates the schema and request payload
    * @returns "OK" if validated otherwise returns errors object containing detailed validation info.
    */
 

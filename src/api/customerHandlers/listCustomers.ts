@@ -47,7 +47,7 @@ export const listCustomers: APIGatewayProxyHandler = async function (
   } catch (err) {
     result.statusCode = 500;
     result.body = `Error interno: ${err}`;
-    console.log("List Customerws Error", {
+    console.log("List customers error", {
       err,
       event,
     });

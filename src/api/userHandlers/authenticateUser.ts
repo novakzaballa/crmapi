@@ -58,7 +58,7 @@ export const authenticateUser: APIGatewayProxyHandler = async function (
     }
     result.statusCode = 401
     result.body = `${err}`;
-    console.log("CreateUserApiError:", {
+    console.log("Authenticate user error:", {
       err,
       event,
     });
