@@ -11,7 +11,7 @@
     "@aws/dynamodb-data-mapper-annotations": "^0.7.3",
     "@types/auth0": "^2.20.3",
     "auth0": "^2.24.0",
-    "aws-sdk": "^2.656.0",
+    "aws-sdk": "^2.814.0",
     "class-validator": "^0.11.1",
     "njwt": "^1.0.0",
     "serverless": "^1.68.0",
