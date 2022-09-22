@@ -3,6 +3,7 @@ node_modules
 jspm_packages
 coverage
 .vscode
+.dynamodb
 
 # Serverless directories
 .serverless
@@ -20,3 +21,8 @@ coverage/lcov-report/classes/index.html
 coverage/lcov-report/common/constants.ts.html
 coverage/lcov-report/common/dbConnection.ts.html
 coverage/lcov-report/common/index.html
+
+# Other
+
+lib
+coverage
