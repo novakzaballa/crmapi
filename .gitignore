@@ -4,6 +4,7 @@ jspm_packages
 coverage
 .vscode
 .dynamodb
+.DS_Store
 
 # Serverless directories
 .serverless
@@ -26,3 +27,6 @@ coverage/lcov-report/common/index.html
 
 lib
 coverage
+
+# src
+src/.DS_Store
