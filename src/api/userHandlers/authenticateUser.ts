@@ -15,6 +15,7 @@ import { CrmUser } from "../../classes/CrmUser";
 export const authenticateUser: APIGatewayProxyHandler = async function (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  console.log('INFO: Entering authenticateUser()');
   const result: APIGatewayProxyResult = {
     body: "Missing params email and/or password.",
     statusCode: 400,
@@ -46,11 +47,12 @@ export const authenticateUser: APIGatewayProxyHandler = async function (
   }
   try {
     const user: any = await CrmUser.authenticateUser(email, password);
+    console.info('Authenticated user:', user)
     if (user) {
       result.statusCode = 200;
       result.body = JSON.stringify({ user });
     } else {
-      throw new Error("Unknown internal error. User list empty.");
+      throw new Error("Unknown internal error. Verify if user list is empty.");
     }
   } catch (err) {
     if (err.message.indexOf("assword") < 0) {

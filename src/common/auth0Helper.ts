@@ -54,6 +54,8 @@ export const authenticateIdpUser = async (
   email: string,
   password: string
 ): Promise<TokenResponse> => {
+  let response = undefined;
+  console.log("Authorizing user: ", email);
   if (!email || !password) {
     console.log("users.listAll Error: per_page or page params not valid.");
     throw new Error("users.listAll Error: per_page or page params not valid.");
@@ -66,8 +68,15 @@ export const authenticateIdpUser = async (
     password: password,
     scope: "admin",
   };
-
-  return await auth0Mgmt.passwordGrant(params);
+  try {
+    response = await auth0Mgmt.passwordGrant(params);
+    console.log('DEBUG: Response:', response)
+    return response;  
+  }
+  catch (err) {
+    console.error('Error: In authenticateIdpUser:', err)    
+  }
+  return undefined;
 };
 
 /**

@@ -34,7 +34,7 @@ provider:
   stage: dev
   region: us-east-1
   apiGateway:
-    minimumCompressionSize: 1024 # Enable gzip compression for responses > 1 KB
+    minimumCompressionSize: 256 # Enable gzip compression for responses > 1 KB
 
   environment:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
@@ -63,21 +63,25 @@ provider:
       #Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.CUSTOMER_TABLE}"
 
 functions:
+  authorizerFunc:
+    handler: src/common/authorizerFunc.authorizerFunc
+
   createCustomer:
     handler: src/api/customerHandlers/createCustomer.createCustomer
     events:
       - http:
           method: post
           path: api/customers
-          authorizer: authorizerFunc
-
+          authorizer:
+            name: authorizerFunc
   updateCustomer:
     handler: src/api/customerHandlers/updateCustomer.updateCustomer
     events:
       - http:
           method: put
           path: api/customers/{id}
-          authorizer: authorizerFunc
+          authorizer:
+            name: authorizerFunc
 
   deleteCustomer:
     handler: src/api/customerHandlers/deleteCustomer.deleteCustomer
@@ -85,7 +89,8 @@ functions:
       - http:
           method: delete
           path: api/customers/{id}
-          authorizer: authorizerFunc
+          authorizer:
+            name: authorizerFunc
 
   getCustomer:
     handler: src/api/customerHandlers/getCustomer.getCustomer
@@ -93,7 +98,8 @@ functions:
       - http:
           method: get
           path: api/customers/{id}
-          authorizer: authorizerFunc
+          authorizer:
+            name: authorizerFunc
 
   listCustomers:
     handler: src/api/customerHandlers/listCustomers.listCustomers
@@ -101,7 +107,8 @@ functions:
       - http:
           method: get
           path: api/customers
-          authorizer: authorizerFunc
+          authorizer:
+            name: authorizerFunc
 
   addCustomerPhoto:
     handler: src/api/customerHandlers/addCustomerPhoto.addCustomerPhoto
@@ -109,7 +116,8 @@ functions:
       - http:
           method: put
           path: api/customers/{id}/photo
-          authorizer: authorizerFunc
+          authorizer:
+            name: authorizerFunc
 
   getCustomerPhoto:
     handler: src/api/customerHandlers/getCustomerPhoto.getCustomerPhoto
@@ -117,7 +125,6 @@ functions:
       - http:
           method: get
           path: api/customers/{id}/photo
-#         authorizer: authorizerFunc
 
   listUsers:
     handler: src/api/userHandlers/listUsers.listUsers
@@ -125,7 +132,8 @@ functions:
       - http:
           method: get
           path: api/users
-          authorizer: authorizerFunc
+          authorizer:
+            name: authorizerFunc
     
   createUser:
     handler: src/api/userHandlers/createUser.createUser
@@ -133,7 +141,8 @@ functions:
       - http:
           method: post
           path: api/users
-          authorizer: authorizerFunc
+          authorizer:
+            name: authorizerFunc
 
   updateUser:
     handler: src/api/userHandlers/updateUser.updateUser
@@ -141,7 +150,8 @@ functions:
       - http:
           method: put
           path: api/users/{id}
-          authorizer: authorizerFunc
+          authorizer:
+            name: authorizerFunc
 
   deleteUser:
     handler: src/api/userHandlers/deleteUser.deleteUser
@@ -149,7 +159,8 @@ functions:
       - http:
           method: delete
           path: api/users/{id}
-          authorizer: authorizerFunc
+          authorizer:
+            name: authorizerFunc
 
   deleteUserByEmail:
     handler: src/api/userHandlers/deleteUserByEmail.deleteUserByEmail
@@ -157,7 +168,8 @@ functions:
       - http:
           method: delete
           path: api/users
-          authorizer: authorizerFunc
+          authorizer:
+            name: authorizerFunc
 
   setUserRole:
     handler: src/api/userHandlers/setUserRole.setUserRole
@@ -165,7 +177,8 @@ functions:
       - http:
           method: post
           path: api/users/role
-          authorizer: authorizerFunc
+          authorizer:
+            name: authorizerFunc
 
   authenticateUser:
     handler: src/api/userHandlers/authenticateUser.authenticateUser
@@ -173,9 +186,6 @@ functions:
       - http:
           method: post
           path: api/authorize
-
-  authorizerFunc:
-    handler: src/common/authorizerFunc.authorizerFunc
 
 resources:
   Resources:
